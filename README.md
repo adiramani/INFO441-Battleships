@@ -8,6 +8,7 @@ We will be building an online battleship game. We are building this game because
 
 ## Architectural diagram (numbers represent ports):
 
+![Architectural Diagram](/readme_images/architectural_diagram.png)
 
 
 Priority
@@ -145,6 +146,7 @@ Only allowed if player wins or if a player forfeits (loses connection) and the p
 
 ## Database Schema:
 https://app.lucidchart.com/invitations/accept/0697ccf4-8483-4385-9f6d-fc84ec2417ca
+![Architectural Diagram](/readme_images/erd.png)
 
 
 
