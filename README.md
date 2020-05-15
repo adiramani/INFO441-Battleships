@@ -2,7 +2,7 @@
 
 ## Project Description:
 
-We will be building an online battleship game. We are building this game because many people (including ourselves) enjoy playing the game in-person and creating an online version will enable people to connect and play with others remotely. The game (may) include features like an ability to add friends, in-game chat, and leaderboards.
+For our project we will be building a battleship game. Our target audience are people who are feeling disconnected from their friends over the past couple months due to the extenuating circumstances of covid and want to find a way to play games with their friends. Our target audience will want to use our application because it will give them a way to connect with their friends and will contain features that other battleship games may not have. There are a few online battleship games in the market, but not many of them have a chat feature, where people can connect with the people they are playing against and converse (or even trash talk!). In addition to this, if realized, our battleship game will have extra moves that you may not see in a normal game of battleships, for example cluster strikes or random targeting. As developers, we want to build this app because it is something people can use to have fun. During this time, a lot of people may be stressed out, bored, and lonely. This application will let us build something that can be used for entertainment, and helping alleviate some of their problems. In addition, all of us love playing battleships too, so we can enjoy the application with our friends once we've finished!
 
 ## Technical Description:
 
