@@ -18,12 +18,23 @@
         //document.getElementById("deleteUser").addEventListener("click", deleteUser)
         document.getElementById("addfriendbutton").addEventListener("click", addFriend)
         document.getElementById("updateFriendsList").addEventListener("click", getFriends)
+        document.getElementById("addfriendinput").addEventListener("input", autocompleteFriends)
+        /*document.getElementById("addfriendinput").addEventListener("focusout", function(e) {
+            if (document.activeElement.className != "autocomplete-list-items") {
+                console.log(document.activeElement)
+                removeAutocomplete()
+            }
+        })*/
+        checkSignedIn()
     }
 
     function toggleLandingPage(displays) {
         document.getElementById("signindiv").style.display = displays[0]
         document.getElementById("signupdiv").style.display = displays[1]
         document.getElementById("loggedindiv").style.display = displays[2]
+        if (displays[2] == "block") {
+            document.getElementById("welcome-header").innerHTML = "Welcome " + localStorage.getItem("currUser")
+        }
     }
 
     function infoDivToggle(func, status, text) {
@@ -40,6 +51,15 @@
             infoDiv = document.getElementById("infodiv")
             infoDiv.innerHTML = "Success: " + text
             infoDiv.style.backgroundColor = "green"
+        }
+    }
+
+    function checkSignedIn() {
+        infoDivToggle("reset", null, null)
+        var token = localStorage.getItem("authorization")
+        if (token) {
+            toggleLandingPage(["none", "none", "block"])
+            getFriends()
         }
     }
 
@@ -79,7 +99,9 @@
                     });
                     var newResponse = await response.json()
                     console.log(newResponse)
+                    localStorage.setItem("currUser", newResponse.userName)
                     toggleLandingPage(["none", "none", "block"])
+                    getFriends()
                 }
             })
             .catch((err) => console.log(err))
@@ -106,6 +128,7 @@
                     document.getElementById("friendrequestlist").innerHTML = ""
                     toggleLandingPage(["block", "none", "none"])
                     localStorage.removeItem("authorization")
+                    localStorage.removeItem("currUser")
                     infoDivToggle("success", response.status, "Signed Out")
                 }
             })
@@ -163,6 +186,7 @@
                     });
                     var newResponse = await response.json()
                     console.log(newResponse)
+                    localStorage.setItem("currUser", newResponse.userName)
                     toggleLandingPage(["none", "none", "block"])
                 }
             })
@@ -194,6 +218,7 @@
                 } else {
                     var text = await response.text()
                     infoDivToggle("success", response.status, text)
+                    getFriends()
                 }
                 console.log(response)
             })
@@ -238,19 +263,47 @@
                         button.id = "fr_" + fr.username + "button"
                         button.value = fr.username
                         button.innerHTML = "Accept Friend Request"
-                        /*button.addEventListener("click", function(e) {
-                            console.log(e)
-                        })*/
                         button.onclick = acceptFriend;
+
+                        declineButton = document.createElement("BUTTON")
+                        declineButton.id = "fr_decline_" + fr.username + "button" 
+                        declineButton.value = fr.username
+                        declineButton.innerHTML = "Decline Friend Request"
+                        declineButton.onclick = declineFriend;
+
                         div.appendChild(button)
-                        //friendRequestList.innerHTML += fr.username //+ "<br>"
+                        div.appendChild(declineButton)
                         friendRequestList.appendChild(div)
-                        //friendRequestList.innerHTML += "<br>"   
                     })
                     
                     console.log(friends)
                 }
             }) 
+            .catch((err) => console.log(err))
+    }
+
+    function declineFriend() {
+        infoDivToggle("reset", null, null)
+        var token = localStorage.getItem("authorization")
+        var details = {"accepted":false, "reject": true}
+        var url = "https://api.dr4gonhouse.me/v1/friends/" + this.value
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "authorization": token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(details)
+        })
+            .then(async (response) => {
+                var text = await response.text()
+                if (response.status >= 300) {
+                    infoDivToggle("error", response.status, text)
+                } else {
+                    infoDivToggle("success", response.status, text)
+                    getFriends()
+                }
+            })
             .catch((err) => console.log(err))
     }
 
@@ -278,6 +331,66 @@
                 }
             })
             .catch((err) => console.log(err))
+    }
+
+    function removeAutocomplete() {
+        var divs = document.getElementsByClassName("autocomplete-list-items")
+        if(divs) {
+            for(var i = 0; i < divs.length; i++) {
+                divs[i].parentNode.removeChild(divs[i])
+            }
+        }
+    }
+
+    function autocompleteFriends() {
+        removeAutocomplete()
+        if (this.value == "") {
+            return;
+        }
+        infoDivToggle("reset", null, null)
+        var value = this.value 
+        var token = localStorage.getItem("authorization")
+        console.log(value)
+        var url = "https://api.dr4gonhouse.me/v1/friends/" + value
+
+        div = document.createElement("DIV")
+        div.id = "autocomplete-list"
+        div.className = "autocomplete-items"
+        var parentNode = this.parentNode
+        fetch(url, {
+            method: "GET",
+            headers: {
+                "authorization": token
+            }
+        })
+            .then(async (response) => {
+                if (response.status >= 300) {
+                    var text = await response.text()
+                    infoDivToggle("error", response.status, text)
+                } else {
+                    var autofillList = await response.json()
+                    if (value != document.getElementById("addfriendinput").value) {
+                        return;
+                    }
+                    console.log(autofillList)
+                    parentNode.appendChild(div)
+                    autofillList.forEach(user => {
+                        itemDiv = document.createElement("DIV")
+                        itemDiv.className = "autocomplete-list-items"
+                        itemDiv.innerHTML = "<strong>" + user.username.substr(0, value.length) + "</strong>"
+                        itemDiv.innerHTML += user.username.substr(value.length)
+                        itemDiv.innerHTML += "<input type='hidden' value='" + user.username + "'>"
+                        itemDiv.addEventListener("click", function(e) {
+                            document.getElementById("addfriendinput").value = this.getElementsByTagName("input")[0].value
+                            removeAutocomplete()
+                        })
+                        div.appendChild(itemDiv)
+                        
+                    })
+                }
+            })
+            .catch((err) => console.log(err))
+
     }
 
     

@@ -11,3 +11,35 @@
 #signindiv {
     width: 10vw;
 }
+
+#friendsdiv {
+    position: absolute;
+    width: 10vw;
+    bottom:0;
+    right:0;
+    border: thick solid black;
+}
+
+input {
+    border: 1px solid transparent;
+    padding: 5px;
+    background-color: #f1f1f1;
+}
+
+.autocomplete-list-items {
+    border: thin solid black;
+    padding: 5px;
+}
+
+.autocomplete-list-items:hover {
+    opacity: 0.5;
+}
+
+.autocomplete-items {
+    position: absolute;
+    background-color: white;
+}
+
+#welcome-header {
+    width: 300%;
+}

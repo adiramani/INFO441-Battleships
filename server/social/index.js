@@ -69,6 +69,28 @@ app.get("/v1/friends", async (req, res) => {
     }
 })
 
+app.get("/v1/friends/:partialUser", async (req, res) => {
+    if (!("x-user" in req.headers)) {
+        res.status(403).send("User not authenticated");
+        return;
+    }
+    const {userID} = JSON.parse(req.headers['x-user'])
+    if (!userID) {
+        res.status(403).send("No id passed in");
+        return;
+    }
+
+    try {
+        var input = req.params.partialUser
+        const users = await querySQL("SELECT u.username FROM user u WHERE lower(u.username) LIKE " 
+            + mysql.escape(input + "%") + " AND u.id != " + mysql.escape(userID))
+        res.setHeader("Content-Type", "application/json")
+        res.status(200).json(users)
+    } catch(e) {
+        res.status(500).send("Problem retrieving users: " + e.toString())
+    }
+})
+
 app.post("/v1/friends/:friendUserName", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(403).send("User not authenticated");
@@ -80,7 +102,7 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
         return;
     }
     
-    const {accepted} = req.body
+    var {accepted, reject} = req.body
     if (accepted == null) {
         res.status(500).send("No accepted passed in - internal error")
         return
@@ -93,15 +115,44 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
         friendID = -1
         if (row[0] && row[0].id) {
             friendID = row[0].id
+            if (friendID == userID) {
+                res.status(403).send("Can't friend yourself")
+                return;
+            }
         } else {
             res.status(403).send("Unable to find friend")
             return;
         }
+
+        // if they decline the friend request, delete it.
+        if (reject) {
+            await querySQL("DELETE FROM friends WHERE friendid=" + mysql.escape(userID) + " AND userid=" + 
+                mysql.escape(friendID))
+            res.status(200).send("Succesfully rejected friend request.")
+            return;
+        }
+
+        // check to see if request already made
+        const check = await querySQL("SELECT * FROM friends WHERE friendid=" + mysql.escape(friendID) + " AND userid=" +
+            mysql.escape(userID))
+        if (check[0]) {
+            res.status(403).send("Already sent request to this user")
+            return;
+        }
+
+        // check to see if this can be considered an acceptance
+        const check2 = await querySQL("SELECT * FROM friends WHERE friendid=" + mysql.escape(userID) + " AND userid=" + 
+            mysql.escape(friendID))
+        if (check2[0]) {
+            accepted = true;
+        }
+
         await querySQL("INSERT INTO friends(userid, friendid, accepted) VALUES (" + mysql.escape(userID) + ", " 
-        + mysql.escape(friendID) + ", " + accepted + ")")
+        + mysql.escape(friendID) + ", " + mysql.escape(accepted) + ")")
+
         // if its an acceptence request, update the original request record
         if (accepted) {
-            await querySQL("UPDATE friends SET accepted=" + accepted + " WHERE userid=" + mysql.escape(friendID) + " AND friendid = " 
+            await querySQL("UPDATE friends SET accepted=" + mysql.escape(accepted) + " WHERE userid=" + mysql.escape(friendID) + " AND friendid = " 
         + mysql.escape(userID))
             res.status(201).send("Friend request accepted.")
             return;
