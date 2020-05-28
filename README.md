@@ -55,9 +55,17 @@ P3|As a player|I want to see where I rank based on number of wins|Pull down a li
     * Output: Plain text confirming session has ended
     * End the current authenticated user’s session
 
+**Social Endpoints:**
+* GET /v1/friends
+  * Input: authorization
+  * Output: List of all friends and friend requests
+* POST /v1/friends/{id}
+  * Input: authorization, friend username, acceptence request or first request
+  * Output: Success/Failure message
+
 
 **Chat Endpoints:**
-* POST /chat - create a chat with another player based on body info
+* POST /v1/chat - create a chat with another player based on body info
   * Input: JSON of a chat model in request body
     * Chat members, creator, timeCreated
   * Output: New Chat model in JSON with ID

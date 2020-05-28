@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css"/>
+    <script src="index.js"></script>
+    <title>Battleships</title>
+</head>
+<body>
+    <div id="signindiv">
+        <label for="signin_email">Email:</label>
+        <input type="text" id="signin_email" name="signin_email"/>
+        <label for="signin_password">Password:</label>
+        <input type="password" id="signin_password" name="signin_password"/>
+        <button type="button" id="signin">Sign in</button>
+        <button type="button" id="signuppage">Sign up instead</button>
+    </div>
+    <div id="signupdiv">
+        <label for="signup_email">Email:</label>
+        <input type="text" id="signup_email" name="signup_email"/>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username"/>
+        <label for="firstname">First Name:</label>
+        <input type="text" id="firstname" name="firstname"/>
+        <label for="lastname">Last Name:</label>
+        <input type="text" id="lastname" name="lastname"/>
+        <label for="signup_password">Password:</label>
+        <input type="password" id="signup_password" name="signup_password"/>
+        <label for="passconf">Confirm Password:</label>
+        <input type="password" id="passconf" name="passconf"/>
+        <button type="button" id="signup">Sign up</button>
+        <button type="button" id="signinpage">Sign in instead</button>
+    </div>
+    <div id="loggedindiv">
+        <div>
+            <p>logged in</p>
+            <label for="addfriendinput">Friend</label>
+            <input type="text" id="addfriendinput", name="addfriendinput"/>
+            <button type="button" id="addfriendbutton">Add Friend</button>
+            <button type="button" id="signout">Sign out</button>
+        </div>
+        <div id="friendsdiv">
+            <h4>Friends List</h4>
+            <div id="friendslist">
+
+            </div>
+            <h4>Friend Requests</h4>
+            <div id="friendrequestlist">
+
+            </div>
+            <button type="button" id="updateFriendsList">Update Friends List</button>
+        </div>
+        <!--<button type="button" id="deleteUser">Delete Account</button>-->
+    </div>
+    <div id="infodiv">
+    </div> 
+</body>
+</html>

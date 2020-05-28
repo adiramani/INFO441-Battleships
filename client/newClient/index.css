@@ -1,0 +1,13 @@
+#signupdiv {
+    display: none;
+    width: 10vw;
+}
+
+#loggedindiv {
+    display: none;
+    width: 10vw;
+}
+
+#signindiv {
+    width: 10vw;
+}
