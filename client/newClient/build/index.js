@@ -1,4 +1,7 @@
 (function() {
+
+    var openConn = null;
+
     window.onload = function() {
         document.getElementById("signuppage").onclick = function() {
             document.getElementById("signindiv").style.display = "none"
@@ -126,7 +129,15 @@
                     console.log(response)
                     document.getElementById("friendslist").innerHTML = ""
                     document.getElementById("friendrequestlist").innerHTML = ""
+                    document.getElementById("chat-text").innerHTML = ""
+                    //document.getElementById("chat-received").innerHTML = ""
+                    //document.getElementById("chat-sent").innerHTML = ""
+                    document.getElementById("chat-header").innerHTML = ""
+                    document.getElementById("chat-input-text").value = ""
                     toggleLandingPage(["block", "none", "none"])
+                    if(openConn) {
+                        openConn.close()
+                    }
                     localStorage.removeItem("authorization")
                     localStorage.removeItem("currUser")
                     infoDivToggle("success", response.status, "Signed Out")
@@ -248,27 +259,30 @@
                     var friendRequestList = document.getElementById("friendrequestlist")
                     friendRequestList.innerHTML = ""
                     friends.forEach(friend => {
-                        friendList.innerHTML += friend.username
+                        htmlVal = "<li>" + friend.username
                         if (!friend.accepted) {
-                            friendList.innerHTML += " Not acccepted<br>"
+                            htmlVal += " <strong>Not acccepted</strong></li>"
+                        } else {
+                            htmlVal += "</li>"
                         }
+                        friendList.innerHTML += htmlVal
                     });
 
                     friendRequests.forEach(fr => {
                         div = document.createElement("DIV")
-                        p = document.createElement("p")
+                        p = document.createElement("li")
                         p.innerHTML = fr.username
                         div.appendChild(p)
                         button = document.createElement("BUTTON")
                         button.id = "fr_" + fr.username + "button"
                         button.value = fr.username
-                        button.innerHTML = "Accept Friend Request"
+                        button.innerHTML = "Accept"
                         button.onclick = acceptFriend;
 
                         declineButton = document.createElement("BUTTON")
                         declineButton.id = "fr_decline_" + fr.username + "button" 
                         declineButton.value = fr.username
-                        declineButton.innerHTML = "Decline Friend Request"
+                        declineButton.innerHTML = "Decline"
                         declineButton.onclick = declineFriend;
 
                         div.appendChild(button)
@@ -276,10 +290,138 @@
                         friendRequestList.appendChild(div)
                     })
                     
+                    await fillChatHeader(friends)
                     console.log(friends)
                 }
             }) 
             .catch((err) => console.log(err))
+    }
+
+    async function fillChatHeader(friends) {
+        var header = document.getElementById("chat-header")
+        header.innerHTML = ""
+        var token = localStorage.getItem("authorization")
+        friends.forEach(async (friend) => {
+            await fetch("https://api.dr4gonhouse.me/v1/channels?friendID=" + friend.friendid, {
+                method: "GET",
+                headers: {
+                    "authorization": token
+                }
+            })
+                .then(async (response) => {
+                    if (response.status >= 300) {
+                        var text = await response.text()
+                        infoDivToggle("error", response.status, text)
+                    } else {
+                        var channel = await response.json()
+                        if(!channel[0]) {
+                            createNewChannel(friend)
+                            return;
+                        }
+                        channel[0].members.forEach((member) => {
+                            if (member.username == friend.username) {
+                                var friendDiv = document.createElement("DIV")
+                                friendDiv.id = channel[0].id
+                                friendDiv.className = "chat-header-item"
+                                friendDiv.innerHTML = friend.username
+                                friendDiv.onclick = openFriendChat
+                                header.append(friendDiv)
+                                return;
+                            }
+                        })
+                    }
+                })
+                .catch((err) => console.log(err))
+        })
+    }
+
+    function createNewChannel(friend) {
+        var header = document.getElementById("chat-header")
+        var name = localStorage.getItem("currUser") + "-" + friend.username
+        var token = localStorage.getItem("authorization")
+        var details = {"name": name, "private":true, "otherUserName": friend.username}
+        fetch("https://api.dr4gonhouse.me/v1/channels", {
+            method: "POST",
+            headers: {
+                "authorization": token,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(details)
+        })
+            .then(async (response) => {
+                if (response.status >= 300) {
+                    var text = await response.text()
+                    infoDivToggle("error", response.status, text)
+                } else {
+                    var newChannel = await response.json()
+                    newChannel.members.forEach((member) => {
+                        if (member.username == friend.username) {
+                            var friendDiv = document.createElement("DIV")
+                            friendDiv.id = newChannel.id
+                            friendDiv.className = "chat-header-item"
+                            friendDiv.innerHTML = friend.username
+                            friendDiv.onclick = openFriendChat
+                            header.append(friendDiv)
+                            return;
+                        }
+                    })
+                }
+            })
+            .catch((err) => console.log(err))
+    }
+
+    function openFriendChat() {
+        document.getElementById("chat-text").innerHTML = ""
+        var prev = document.getElementsByClassName("chat-header-active")
+        for (var i = 0; i < prev.length; i++) {
+            if(prev[i]) {
+                prev[i].classList.remove("chat-header-active")
+            }
+        }
+        this.classList.add("chat-header-active")
+        if (openConn) {
+            openConn.close()
+            document.getElementById("chat-text")
+        }
+        var url = "wss://api.dr4gonhouse.me/v1/channels/" + this.id + "/message?auth=" + localStorage.getItem("authorization")
+        var conn = new WebSocket(url)
+        openConn = conn
+        var messageHandler = function() {
+            var msg = document.getElementById("chat-input-text").value
+            openConn.send(msg)   
+            document.getElementById("chat-text").innerHTML += "<div id=chat-sent>" + msg + "</div>"
+        }
+        conn.onopen = function() {
+            document.getElementById("send-chat").addEventListener("click", messageHandler)
+        }
+        conn.onerror = function(error) {
+            console.error('WebSocket Error ' + error);
+        }
+        conn.onclose = function() {
+            document.getElementById("send-chat").removeEventListener("click", messageHandler)
+        }
+        conn.onmessage = function(e) {
+            if(e.data.startsWith("Error")) {
+                infoDivToggle("error", 500, e.data)
+                return;
+            }
+            var messages = JSON.parse(e.data)
+            console.log(messages)
+            if(messages["type"] && messages["type"] == "old") {
+                var sortedMsgs = messages['messages'].sort((a, b) =>  Date.parse(a.createdAt) - Date.parse(b.createdAt))
+                console.log(sortedMsgs)
+                for (var i = 0; i < sortedMsgs.length; i++) {
+                    if (sortedMsgs[i].creator.username != localStorage.getItem("currUser")) {
+                        document.getElementById("chat-text").innerHTML += "<div id=chat-received>" + sortedMsgs[i].body + "</div>"
+                    } else {
+                        document.getElementById("chat-text").innerHTML += "<div id=chat-sent>" + sortedMsgs[i].body + "</div>"
+                    }
+                }
+            } else {
+                document.getElementById("chat-text").innerHTML += "<div id=chat-received>" + sortedMsgs.body + "</div>"
+                document.getElementById("chat-input-text").value = ""
+            }
+        }
     }
 
     function declineFriend() {

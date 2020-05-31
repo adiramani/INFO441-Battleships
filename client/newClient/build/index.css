@@ -1,0 +1,182 @@
+#signupdiv {
+    display: none;
+    width: 10vw;
+    margin: auto;
+}
+
+#loggedindiv {
+    display: none;
+    width: 10vw;
+}
+
+#signindiv {
+    width: 10vw;
+    margin: auto;
+}
+
+#signindiv h1 {
+    text-align: center;
+    padding-bottom: 3%; 
+}
+
+#signindiv p {
+    text-align: center;
+}
+
+#friendsdiv {
+    position: absolute;
+    width: 15vw;
+    height: 40vh;
+    bottom:0;
+    right:0;
+    border: thick solid black;
+}
+
+input {
+    border: 1px solid transparent;
+    padding: 5px;
+    background-color: #f1f1f1;
+}
+
+.autocomplete-list-items {
+    border: thin solid black;
+    padding: 5px;
+}
+
+.autocomplete-list-items:hover {
+    opacity: 0.5;
+}
+
+.autocomplete-items {
+    position: absolute;
+    background-color: white;
+}
+
+#welcome-header {
+    width: 300%;
+}
+
+/*#chat-received {
+    width: 50%;
+    float: left;
+}*/
+#friendsdiv h4 {
+    margin: 2%;
+}
+
+#friendsdiv li {
+    padding-left: 3%;
+    width: 100%;
+    overflow: hidden;
+}
+
+#friendrequestlist li {
+    display: inline-block;
+    padding-right: 5%;
+}
+
+#friendrequestlist button {
+    height: 100%;
+    display: inline-block;
+}
+
+#friendslist {
+    overflow-y: scroll;
+    height: 20%;
+}
+
+#friendrequestlist {
+    overflow-y: scroll;
+    height: 20%;
+}
+
+#chatdiv {
+    position: absolute;
+    width: 15vw;
+    height: 40vh;
+    bottom:0;
+    right:16vw;
+    border: thick solid black;
+    margin: none;
+}
+
+#upper-chatdiv {
+    height: 80%;
+    position: relative;
+}
+
+#chat-close {
+    position: absolute;
+    border: thin solid black;
+    background-color: rgba(97, 97, 97, 0.5);
+    padding: 1%;
+    top: 0;
+    right: 0;
+}
+
+#chat-header {
+    overflow-x: scroll;
+    /*height: 30%;*/
+    width: 100%;
+}
+
+#chat-header div {
+    display: inline-block;
+    border: thin solid black;
+    padding: 5%;
+    width: auto;
+}
+
+.chat-header-active {
+    background-color: #f1f1f1;
+    opacity: 0.5;
+}
+
+#chat-text {
+    overflow-y: scroll;
+    height: 70%;
+}
+
+#lower-chatdiv {
+    padding-top: 5%;
+    height: 15%;
+    margin: none;
+}
+
+#chat-input-text {
+    width: 60%;
+}
+
+#send-chat {
+    width: 20%;
+}
+
+
+
+#chat-received{
+    padding-left: 5%;
+    padding-right: 5%;
+    background-color: rgba(6, 6, 255, 0.5);
+    border: thin solid black;
+    border-radius: 5%;
+    width: 60%;
+    display: inline-block;
+}
+
+/*#chat-sent {
+    width: 50%;
+    float: right;
+}*/
+
+#chat-sent{
+    width: 60%;
+    float: right;
+    padding-left: 5%;
+    padding-right: 5%;
+    background-color: rgba(255, 255, 255, 0.651);
+    border: thin solid black;
+    border-radius: 5%;
+    text-align: right;
+    display: inline-block;
+    
+}

@@ -4,9 +4,9 @@ const channelSchema = new Schema({
     name: {type:String, required:true, unique:true},
     description: String,
     private: Boolean,
-    members: {type:[{id:Number, email:String}]},
+    members: {type:[{id:Number, username:String}]},
     createdAt: {type:Date, required:true},
-    creator: {type:{id:Number, email:String}},
+    creator: {type:{id:Number, username:String}},
     editedAt: Date,
 })
 
@@ -15,7 +15,7 @@ const messageSchema = new Schema({
     channelID: {type:Schema.Types.ObjectId, required:true},
     body: {type:String, required:true},
     createdAt: {type:Date, required:true},
-    creator: {id:Number, email:String},
+    creator: {id:Number, username:String},
     editedAt: Date,
 })
 

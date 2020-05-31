@@ -84,6 +84,10 @@ func main() {
 	messageCount := 0
 	messageDirector := func(r *http.Request) {
 		auth := r.Header.Get("Authorization")
+		if len(auth) == 0 {
+			auth = r.URL.Query().Get("auth")
+			log.Printf("Auth: %s" + auth)
+		}
 		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
 		sessState := &handlers.SessionState{}
 		err := handlerContext.SessStore.Get(authUserSessID, sessState)
