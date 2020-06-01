@@ -38,6 +38,48 @@
     <div id="loggedindiv">
         <h2 id="welcome-header"></h2>
         <button type="button" id="signout">Sign out</button>
+        <div id="game">
+            <h1 id="game-title">Battleship</h1>
+            <div id="pieces" class="sidebar">
+                <h2 id="pieces-title">Place Your Pieces</h2>
+                <div id="piece-caption">Select Ship Name to Position</div>
+                <div class="piece" size=>Carrier</div>
+                <div class="piece">Battleship</div>
+                <div class="piece">Cruiser</div>
+                <div class="piece">Submarine</div>
+                <div class="piece">Destroyer</div>
+                <button id="orientation-button">Change Orientation</button>
+            </div>
+			<div id="settings" class="sidebar">
+                <h2 id="settings-title">Game Settings</h2>
+                <div>
+                    <input id="random-input" type="radio" name="gameType" value="random" checked=true>
+                    <span>Random Opponent</span>
+                </div>
+                <div>
+                    <input id="friend-input" type="radio" name="gameType" value="friend">
+                    <span>Play a Friend</span>
+                </div>
+                <input id="id-input" type="text" placeholder="Enter or generate a uniqueID" size=25>
+                <button id="generateID-button">Generate Unique ID</button>
+                <button id="startgame-button">Start Game</button>
+            </div>
+			<div id="stats" class="sidebar">
+                <h2 id="stats-title">Stats</h2>
+                <div id="shotsTaken">Shots Taken: </div>
+                <div id="hits">Hits: </div>
+                <div id="misses">Misses: </div>
+                <div id="hit-percentage">Hit Percentage: </div>
+            </div>
+			<div id="gameboard">
+				<div id="player1GB" class="grid">
+					<h2 class="grid-title">Your Grid</h2>
+				</div>
+				<div id="player2GB" class="grid">
+					<h2 class="grid-title">Opponent's Grid</h2>
+				</div>
+			</div>
+        </div>
         <div id="chatdiv">
                 <div id="upper-chatdiv">
                     <div id="chat-header">

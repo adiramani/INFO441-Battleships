@@ -6,7 +6,7 @@
 
 #loggedindiv {
     display: none;
-    width: 10vw;
+    width: 100%;
 }
 
 #signindiv {
@@ -179,4 +179,136 @@ input {
     text-align: right;
     display: inline-block;
     
+}
+
+.grid-title {
+    text-align: center;
+    padding: 10px;
+}
+
+#game-title {
+    padding-left: 540px;
+}
+
+#game {
+    /* position: absolute; */
+    width: 1000px;
+    /* height: 40vh; */
+    bottom:0;
+    /* right:16vw; */
+    /* border: thick solid black; */
+    margin: none;
+}
+
+#gameboard {
+	position: relative;
+    float: right;
+	height: 500px;
+}
+
+.grid {
+    width:340px;
+    height:340px;
+    display: inline-block;
+    padding-right: 30px
+}
+
+.grid div {
+    vertical-align: top; /*clears the vertical space between rows*/
+    height: 32px;
+    width: 32px;
+    display: inline-block;
+    background-color: #0077be;
+    margin: 1px;
+    /* -webkit-border-radius: 2px;
+    -moz-border-radius: 2px; */
+    border-radius: 2px;
+}
+
+#player1GB {
+    float: left;
+}
+
+#player2GB {
+	float: right;
+}
+
+#pieces {
+    float: left;
+    border-radius: 25px;
+    vertical-align: middle;
+    /* border: 2px solid black; */
+    /* border-radius: 25px; */
+    padding-right: 50px;
+    height: 500px;
+    vertical-align: middle;
+    padding-top: 100px;
+}
+
+.piece {
+    /* vertical-align: top; */
+    display: block;
+    text-align: center;
+    padding-bottom: 20px;
+    /* font-weight: bold; */
+    font-size: 15pt;
+}
+
+.piece-selected {
+    font-weight: "bold";
+    font-size: 18pt;
+    color: red;
+}
+
+.hoverAttr {
+    background-color: grey !important;
+}
+
+.occupied {
+    background-color: black !important;
+}
+
+.setup-done {
+    pointer-events: none !important;
+}
+
+#orientation-button {
+    display: block;
+    margin: auto;
+}
+
+.sidebar {
+    float: left;
+    border-radius: 25px;
+    vertical-align: middle;
+    /* border: 2px solid black; */
+    /* border-radius: 25px; */
+    padding-right: 50px;
+    height: 200px;
+    vertical-align: middle;
+    padding-top: 100px;
+}
+
+.sidebar h2 {
+    text-align: center;
+}
+
+.sidebar div, .sidebar h2, .sidebar button, #id-input {
+    display: block;
+}
+
+#startgame-button, #generateID-button, #id-input {
+    margin-top: 20px;
+    vertical-align: middle;
+}
+
+#piece-caption {
+    padding-bottom: 15px;
+    font-size: small;
+    text-align: center;
+}
+
+#stats div {
+    padding-bottom: 20px;
+    font-size: 15pt;
 }

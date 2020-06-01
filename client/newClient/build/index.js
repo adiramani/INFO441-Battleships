@@ -29,6 +29,9 @@
             }
         })*/
         checkSignedIn()
+
+        newGame();
+        addSetupListeners();
     }
 
     function toggleLandingPage(displays) {
@@ -535,6 +538,274 @@
 
     }
 
-    
 
+
+
+    var grid;
+	const SHIPS = ["carrier", "battleship", "cruiser", "submarine", "destroyer"];
+	var initial_ship_pos;
+	var isHorizontal = true;
+
+    function newGame() {
+        grid = new Grid();
+		initial_ship_pos = [];
+        let newGame = new Game()
+        $("pieces").style.display = "block";
+        $("settings").style.display = "none";
+        $("stats").style.display = "none";
+    }
+
+    // helper function to get element by id
+    function $(id) {
+        return document.getElementById(id);
+    }
+
+    function Game() {
+		Game.size = 10;
+		Game.gameOver = false;
+		this.createGrid("player1GB");
+        this.createGrid("player2GB");
+	}
+
+	Game.prototype.createGrid = function(player) {
+		let gridBoard = $(player)
+		let identifier = "p1";
+		if (player == "player2GB") {
+			identifier = "p2";
+		}
+		for (let i = 0; i < Game.size; i++) {
+			for (let j = 0; j < Game.size; j++) {
+				let el = document.createElement('div');
+				el.setAttribute('row', i);
+				el.setAttribute('col', j);
+				el.id = identifier + "_" + "cell_" + i + "_" + j;
+				el.classList.add("cell")
+				gridBoard.appendChild(el);
+			}
+		}
+    }
+
+    function Grid() {
+		this.size = 10;
+		this.cells = createCells();
+	}
+
+	// Types of cells: empty = 0, occupied = 1, hit = 2, miss = 3
+	function createCells() {
+		let cells = [];
+		for (var x = 0; x < 10; x++) {
+			cells[x] = [];
+			for (var y = 0; y < 10; y++) {
+				// empty cell
+				cells[x][y] = 0;
+			}
+		}
+		return cells;
+    }
+
+    // Populate opponents grid with layout specified, should get this information
+	// from backend
+	// positions should be a list of this [{name: "Carrier", row: 3, col: 1, size: 3, orientation: "horizontal"}, ...]
+	function populateOpponentsGrid(positions) {
+		for (let i = 0; i < positions.length; i++) {
+			let col = positions[i].col;
+			let row = positions[i].row;
+			console.log(positions[i].size)
+			if (positions[i].orientation === "horizontal") {
+				for (let j = 0; j < positions[i].size; j++) {
+					$("p2_cell_" + row + "_" + col).classList.add("occupied");
+					col++;
+				}
+			} else {
+				for (let j = 0; j < positions[i].size; j++) {
+					$("p2_cell_" + row + "_" + col).classList.add("occupied");
+					row++;
+				}
+			}
+		}
+	}
+
+	function addHoverToGrid(piece) {
+		let type = piece.innerText
+        let size;
+		if (type === "Carrier") {
+			size = 5;
+		} else if (type === "Battleship") {
+			size = 4;
+		} else if (type === "Cruiser") {
+			size = 3;
+		} else if (type === "Submarine") {
+			size = 3;
+		} else {
+			size = 2;
+        }
+		let cells = $("player1GB").childNodes
+		for (let i = 0; i < cells.length; i++) {
+			let cell = cells[i]
+			cell.onmouseenter = function() {
+				let row = cell.getAttribute("row");
+				let col = cell.getAttribute("col");
+				if (isHorizontal) {
+					if (parseInt(col) + size < 11) {
+						for (let j = 0; j < size; j++) {	
+							$("p1_cell_" + row + "_" + col).classList.add("hoverAttr");
+							col++;
+						}
+					}
+				} else {
+					if (parseInt(row) + size < 11) {
+						for (let j = 0; j < size; j++) {	
+							$("p1_cell_" + row + "_" + col).classList.add("hoverAttr");
+							row++;
+						}
+					}
+				}
+			};
+			cell.onmouseleave = function() {
+				let row = cell.getAttribute("row");
+				let col = cell.getAttribute("col");
+				if (isHorizontal) {
+					if (parseInt(col) + size < 11) {
+						for (let j = 0; j < size; j++) {	
+							$("p1_cell_" + row + "_" + col).classList.remove("hoverAttr");
+							col++;
+						}
+					}
+				} else {
+					if (parseInt(row) + size < 11) {
+						for (let j = 0; j < size; j++) {	
+							$("p1_cell_" + row + "_" + col).classList.remove("hoverAttr");
+							row++;
+						}
+					}
+				}
+			};
+			cell.onclick = function() {
+				let row = cell.getAttribute("row");
+				let col = cell.getAttribute("col");
+
+				if (isValidLocation(parseInt(row), parseInt(col), size)) {
+					if (isHorizontal) {
+						initial_ship_pos.push({name: type, row: row, col: col, size: size, orientation: "horizontal"});
+						for (let j = 0; j < size; j++) {
+							grid.cells[row][col] = 1
+							$("p1_cell_" + row + "_" + col).classList.add("occupied");
+							col++;
+						}
+					} else {
+						initial_ship_pos.push({name: type, row: row, col: col, size: size, orientation: "vetical"});
+						for (let j = 0; j < size; j++) {
+							grid.cells[row][col] = 1
+							$("p1_cell_" + row + "_" + col).classList.add("occupied");
+							row++;
+						}
+					}
+					$("pieces").removeChild(piece);
+	
+					if (allPiecesAreRemoved()) {
+						$("pieces").removeChild($("pieces-title"));
+						$("pieces").removeChild($("orientation-button"));
+						console.log(initial_ship_pos);
+						let playerCells = $("player1GB").getElementsByClassName("cell")
+						for (let i = 0; i < playerCells.length; i++) {
+							playerCells[i].classList.add("setup-done");
+						}
+                        $("pieces").style.display = "none";
+                        $("settings").style.display = "block";
+                        addSettingsListeners();
+					}
+				}
+			}
+		}		
+    }
+    
+    function addSettingsListeners() {
+        $("generateID-button").addEventListener("click", function() {
+            let id = generateUniqueID();
+            $("id-input").value = id;
+        })
+        $("startgame-button").addEventListener("click", function() {
+            let randInput = $("random-input");
+            let friendInput = $("friend-input");
+            if (randInput.checked || (friendInput.checked && $("id-input").value.length > 0)) {
+                let gameID = $("id-input").value;
+                let isRandom = randInput.checked;
+                $("settings").style.display = "none";
+                $("stats").style.display = "block";
+                startGame(isRandom, gameID);
+            }
+        });
+    }
+
+    function startGame(isRandom, gameID) {
+        // Establish Web Socket connection with a random or friend
+            // send initial position of ships for current user
+            // get back opposing players positions
+            // update opponents grid
+            populateOpponentsGrid(initial_ship_pos);
+            // add event listeners for each cell (so user can click to attack)
+            // for each move get the result and update the table && statistics
+        if (isRandom) {
+            console.log("Strting game against random");
+        } else {
+            console.log("Starting game with friend with id " + gameID);
+        }
+    }
+
+	function generateUniqueID() {
+		return '_' + Math.random().toString(36).substr(2, 9);
+	}
+
+
+	function isValidLocation(row, col, shipSize) {
+		if (isHorizontal) {
+			if (col + shipSize < 11) {
+				for (let i = 0; i < shipSize; i++) {
+					if (grid.cells[row][col] != 0) {
+						return false;
+					}
+					col++;
+				}
+            } else {
+                return false;
+            }
+		} else {
+		    if (row + shipSize < 11) {
+				for (let  i = 0; i < shipSize; i++) {
+					if (grid.cells[row][col] != 0) {
+						return false;
+					}
+					row++;
+				}
+			} else {
+                return false;
+            }
+		}
+		return true;
+	}
+
+	function allPiecesAreRemoved() {
+		let pieces = document.getElementsByClassName("piece");
+		if (pieces.length == 0) {
+			return true;
+		}
+		return false;
+	}
+
+    function addSetupListeners() {
+        let button = $("orientation-button");
+        button.addEventListener('click', function() {
+            console.log("clicked");
+            isHorizontal = !isHorizontal;
+        });
+
+        let pieceObjs = document.getElementsByClassName("piece")
+        for (let i = 0; i < pieceObjs.length; i++) {
+            let piece = pieceObjs[i]
+            piece.onmousedown = function() {
+                piece.classList.toggle("piece-selected")
+                addHoverToGrid(piece)
+            };
+        }
+    }
 })()
