@@ -54,7 +54,6 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil || conn == nil {
-		log.Printf("Error: %s", err)
 		http.Error(w, "Connection error", 500)
 		return
 	}
@@ -68,7 +67,6 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 				if connectedUsers[userID].opponentID != -1 {
 					if connectedUsers[connectedUsers[userID].opponentID] != nil {
 						connectedUsers[connectedUsers[userID].opponentID].connection.Close()
-						delete(connectedUsers, connectedUsers[userID].opponentID)
 					}
 				}
 				delete(connectedUsers, userID)
@@ -107,7 +105,6 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 
 	// pieceLocations is a comma seperated list of x, y values representing a user's board layout
 
-	log.Printf(string(message))
 	pieceLocations := strings.Split(strings.Split(string(message), ";")[1], (","))
 
 	user.connection = conn
@@ -136,6 +133,7 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 }
 
 func handleMove(message string, userID int) {
+	log.Printf("message: " + message)
 	x, _ := strconv.Atoi(strings.Split(string(message), (","))[0])
 	y, _ := strconv.Atoi(strings.Split(string(message), (","))[1])
 
