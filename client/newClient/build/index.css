@@ -312,7 +312,7 @@ input {
     display: block;
 }
 
-#startgame-button, #generateID-button, #id-input {
+#startgame-button, #id-input {
     margin-top: 20px;
     vertical-align: middle;
 }
@@ -326,4 +326,8 @@ input {
 #stats div {
     padding-bottom: 20px;
     font-size: 15pt;
+}
+
+#return-to-home {
+    display: none;
 }

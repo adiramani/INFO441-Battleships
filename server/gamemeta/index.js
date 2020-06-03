@@ -45,8 +45,31 @@ async function querySQL(query) {
     })
 }
 
+app.get("/v1/game", async (req, res) => {
+    if (!("x-user" in req.headers)) {
+        res.status(403).send("User not authenticated");
+        return;
+    }
+    const {userID} = JSON.parse(req.headers['x-user'])
+    if (!userID) {
+        res.status(403).send("No User ID provided");
+        return;
+    }
+
+    try {
+        const game = await Game.findOne({"available":true})
+        if (!game || game['players'].length >= 2) {
+            res.status(400).send("No games available")
+            return;
+        }
+        res.status(200).json(game)
+    } catch(e) {
+        res.status(500).send("Error finding game")
+    }
+})
+
 // Create a new game
-app.post("/game", async (req, res) => {
+app.post("/v1/game", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(403).send("User not authenticated");
         return;
@@ -74,10 +97,15 @@ app.post("/game", async (req, res) => {
 
     players = [{"id":userID, "username":userName}]
     createdAt = new Date()
+    available = false
+    if(public) {
+        available = true
+    }
     const game = {
         "public": public,
         "players": players,
         "createdAt": createdAt,
+        "available": available
     }
     const query = new Game(game);
     query.save((err, newGame) => {
@@ -92,7 +120,7 @@ app.post("/game", async (req, res) => {
 
 
 // Add another player to the game
-app.patch("/game/:gameID", async (req, res) => {
+app.patch("/v1/game/:gameID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(403).send("User not authenticated");
         return;
@@ -110,7 +138,9 @@ app.patch("/game/:gameID", async (req, res) => {
             return;
         }
         if (game['players'].length >= 2) {
+            console.log(game)
             res.status(400).send("The game is already full")
+            return
         }
 
         var row = await querySQL("SELECT username FROM user WHERE id=" + mysql.escape(userID))
@@ -124,6 +154,9 @@ app.patch("/game/:gameID", async (req, res) => {
         
         game.editedAt = new Date();
         game.players.push({"id":userID, "username":userName});
+        if(game.available) {
+            game.available = false;
+        }
 
         game.save((err, updatedGame) => {
             if (err) {
@@ -141,7 +174,7 @@ app.patch("/game/:gameID", async (req, res) => {
 });
 
 // Get game information
-app.get("/game/:gameID", async (req, res) => {
+app.get("/v1/game/:gameID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(403).send("User not authenticated");
         return;
@@ -156,13 +189,13 @@ app.get("/game/:gameID", async (req, res) => {
         res.setHeader("Content-Type", "application/json")
         const game = await Game.findOne({"id":req.params.gameID});
         if(!game) {
-            res.status(400).send("The game requested does not exist.")
+            res.status(400).send("No games available")
             return;
         }
-        if (!game['players'].some(el => el.id == userID) && !game.public) {
+        /*if (game.id != req.query.gameID && !game['players'].some(el => el.id == userID) && !game.public) {
             res.status(403).send("User not authorized to see the game.");
             return;
-        }
+        }*/
         res.status(200).json(game);
         return;
 
@@ -174,7 +207,7 @@ app.get("/game/:gameID", async (req, res) => {
 
 
 // Delete the game
-app.delete("/game/:gameID", async (req, res) => {
+app.delete("/v1/game/:gameID", async (req, res) => {
     if (!("x-user" in req.headers)) {
         res.status(403).send("User not authenticated");
         return;

@@ -21,7 +21,7 @@ import (
 func main() {
 	addr := os.Getenv("ADDR")
 	if len(addr) == 0 {
-		addr = ":4443"
+		addr = ":443"
 	}
 
 	TLSCERT := os.Getenv("TLSCERT")
@@ -32,7 +32,8 @@ func main() {
 	SUMMARYADDR := strings.Split(os.Getenv("SUMMARYADDR"), ",")
 	MESSAGESADDR := strings.Split(os.Getenv("MESSAGESADDR"), ",")
 	SOCIALADDR := os.Getenv("SOCIALADDR")
-	GAMEADDR := os.Getenv("GAMEADDR")
+	GAMEADDR1 := os.Getenv("GAMEADDR1")
+	GAMEADDR2 := os.Getenv("GAMEADDR2")
 
 	if len(REDISADDR) == 0 {
 		REDISADDR = "127.0.0.1:6379"
@@ -126,6 +127,10 @@ func main() {
 
 	gameDirector := func(r *http.Request) {
 		auth := r.Header.Get("Authorization")
+		if len(auth) == 0 {
+			auth = r.URL.Query().Get("auth")
+			log.Printf("Auth: %s" + auth)
+		}
 		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
 		sessState := &handlers.SessionState{}
 		err := handlerContext.SessStore.Get(authUserSessID, sessState)
@@ -135,11 +140,28 @@ func main() {
 			r.Header.Del("X-User")
 		}
 
-		r.Host = GAMEADDR
-		r.URL.Host = GAMEADDR
+		r.Host = GAMEADDR1
+		r.URL.Host = GAMEADDR1
 		r.URL.Scheme = "http"
 	}
 	gameProxy := &httputil.ReverseProxy{Director: gameDirector}
+
+	gameDirector2 := func(r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
+		sessState := &handlers.SessionState{}
+		err := handlerContext.SessStore.Get(authUserSessID, sessState)
+		if err == nil {
+			r.Header.Set("X-User", fmt.Sprintf("{\"userID\":%d}", sessState.User.ID))
+		} else {
+			r.Header.Del("X-User")
+		}
+
+		r.Host = GAMEADDR2
+		r.URL.Host = GAMEADDR2
+		r.URL.Scheme = "http"
+	}
+	gameProxy2 := &httputil.ReverseProxy{Director: gameDirector2}
 
 	mux := http.NewServeMux()
 
@@ -149,7 +171,9 @@ func main() {
 	mux.Handle("/v1/messages/", messageProxy)
 	mux.Handle("/v1/friends", socialProxy)
 	mux.Handle("/v1/friends/", socialProxy)
-	mux.Handle("/v1/game/", gameProxy)
+	mux.Handle("/v1/game", gameProxy2)
+	mux.Handle("/v1/game/play/", gameProxy)
+	mux.Handle("/v1/game/", gameProxy2)
 	mux.HandleFunc("/v1/users", handlerContext.UsersHandler)
 	mux.HandleFunc("/v1/users/", handlerContext.SpecficUserHandler)
 	mux.HandleFunc("/v1/sessions", handlerContext.SessionsHandler)

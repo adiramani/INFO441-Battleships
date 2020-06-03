@@ -29,7 +29,7 @@ P3|As a player|I want to see where I rank based on number of wins|Pull down a li
 #### Endpoints
 
 **Player/Session Endpoints:**
-* POST /player - create a new user in the database
+* POST /users - create a new user in the database
   * Input: Player sign up information (JSON)
     * First & last name, email, password hash
   * Output: New Player account with ID (JSON)
@@ -39,19 +39,19 @@ P3|As a player|I want to see where I rank based on number of wins|Pull down a li
   * Input: id parameter from URL
   * Output: Player account for the specified ID in JSON
     * Get ID of currently authenticated user from session store if id == ‘me’
-* POST /session - start a session for a user based on sign in information
+* POST /sessions - start a session for a user based on sign in information
   * Input: User sign in information
     * Email, password
   * Output: Player account for the authenticated user in JSON
     * Begin session for user by assigning a session ID if credentials match user information in player database
-* GET /session/{id} - get a players session info from session ID
+* GET /sessions/{id} - get a players session info from session ID
   * Input: session id from URL parameter
   * Output: Player session information in JSON
 * DELETE /player/{id} - delete a user from the database based on id. 
   * Input: player id from request URL
   * Output: Plain text confirming deletion of player
     * Only able to delete if authorized (if the current authenticated user id deleting his/her own account)
-* DELETE /session/
+* DELETE /sessions/mine
     * Output: Plain text confirming session has ended
     * End the current authenticated user’s session
 
@@ -59,17 +59,19 @@ P3|As a player|I want to see where I rank based on number of wins|Pull down a li
 * GET /v1/friends
   * Input: authorization
   * Output: List of all friends and friend requests
-* POST /v1/friends/{id}
+* POST /v1/friends/{username}
   * Input: authorization, friend username, acceptence request or first request
   * Output: Success/Failure message
+* GET /v1/friends/{partialUserName}
+  * 
 
 
 **Chat Endpoints:**
-* POST /v1/chat - create a chat with another player based on body info
+* POST /v1/channels - create a chat with another player based on body info
   * Input: JSON of a chat model in request body
     * Chat members, creator, timeCreated
   * Output: New Chat model in JSON with ID
-* GET /chat/{id} - get a certain chat room based on id
+* GET v1/channels?friendid= - get a certain chat room based on another user's id
   * Input: id parameter in URL
   * Output: Chat model in JSON
     * Check to see if current authenticated user is creator/member of chat before returning

@@ -4,7 +4,7 @@
     var openConn = null;
 
     
-    window.onload = function() {/*
+    window.onload = function() {
         document.getElementById("signuppage").onclick = function() {
             document.getElementById("signindiv").style.display = "none"
             document.getElementById("signupdiv").style.display = "block"
@@ -20,21 +20,16 @@
         document.getElementById("signout").addEventListener("click", signOut)
         document.getElementById("signin").addEventListener("click", signIn)
         document.getElementById("signup").addEventListener("click", signUp)
-        //document.getElementById("deleteUser").addEventListener("click", deleteUser)
         document.getElementById("addfriendbutton").addEventListener("click", addFriend)
         document.getElementById("updateFriendsList").addEventListener("click", getFriends)
         document.getElementById("addfriendinput").addEventListener("input", autocompleteFriends)
-        /*document.getElementById("addfriendinput").addEventListener("focusout", function(e) {
+        document.getElementById("addfriendinput").addEventListener("focusout", function(e) {
             if (document.activeElement.className != "autocomplete-list-items") {
                 console.log(document.activeElement)
                 removeAutocomplete()
             }
         })
-        checkSignedIn()*/
-        document.getElementById("signinpage").style.display = "none";
-        document.getElementById("signindiv").style.display = "none"
-        document.getElementById("signupdiv").style.display = "none"
-        document.getElementById("loggedindiv").style.display = "block";
+        checkSignedIn();
         newGame();
         addSetupListeners();
     }
@@ -71,6 +66,8 @@
         if (token) {
             toggleLandingPage(["none", "none", "block"])
             getFriends()
+            // used to make game last even if page is refreshed
+            // checkOngoingGame()
         }
     }
 
@@ -84,7 +81,7 @@
 
         var details = {"email":email, "password":password}
         // POST v1/player
-        fetch("https://api.dr4gonhouse.me/v1/sessions", { //https://api.dr4gonhouse.me/v1/summary?url=http://ogp.me
+        fetch("https://api.dr4gonhouse.me/v1/sessions", {
             method: "POST",
             headers: {
                 'Content-Type': "application/json"
@@ -138,8 +135,6 @@
                     document.getElementById("friendslist").innerHTML = ""
                     document.getElementById("friendrequestlist").innerHTML = ""
                     document.getElementById("chat-text").innerHTML = ""
-                    //document.getElementById("chat-received").innerHTML = ""
-                    //document.getElementById("chat-sent").innerHTML = ""
                     document.getElementById("chat-header").innerHTML = ""
                     document.getElementById("chat-input-text").value = ""
                     toggleLandingPage(["block", "none", "none"])
@@ -304,9 +299,15 @@
     async function fillChatHeader(friends) {
         var header = document.getElementById("chat-header")
         header.innerHTML = ""
+        friends.forEach((friend) => {
+            addToChatHeader(friend)
+        })
+    }
+
+    function addToChatHeader(friend) {
+        var header = document.getElementById("chat-header")
         var token = localStorage.getItem("authorization")
-        friends.forEach(async (friend) => {
-            await fetch("https://api.dr4gonhouse.me/v1/channels?friendID=" + friend.friendid, {
+        fetch("https://api.dr4gonhouse.me/v1/channels?friendID=" + friend.friendid, {
                 method: "GET",
                 headers: {
                     "authorization": token
@@ -324,19 +325,27 @@
                         }
                         channel[0].members.forEach((member) => {
                             if (member.username == friend.username) {
-                                var friendDiv = document.createElement("DIV")
-                                friendDiv.id = channel[0].id
-                                friendDiv.className = "chat-header-item"
-                                friendDiv.innerHTML = friend.username
-                                friendDiv.onclick = openFriendChat
-                                header.append(friendDiv)
-                                return;
+                                var currFriendDivs = document.getElementsByClassName("chat-header-item")
+                                exists = false
+                                for (var i = 0; i < currFriendDivs.length; i++) {
+                                    if (currFriendDivs[i].id == channel[0].id) {
+                                        exists = true
+                                    }
+                                }
+                                if(!exists) {
+                                    var friendDiv = document.createElement("DIV")
+                                    friendDiv.id = channel[0].id
+                                    friendDiv.className = "chat-header-item"
+                                    friendDiv.innerHTML = friend.username
+                                    friendDiv.onclick = openFriendChat
+                                    header.append(friendDiv)
+                                    return;
+                                }
                             }
                         })
                     }
                 })
                 .catch((err) => console.log(err))
-        })
     }
 
     function createNewChannel(friend) {
@@ -546,6 +555,30 @@
 	var initial_ship_pos;
 	var isHorizontal = true;
 
+    // used to make game last even if page is refreshed
+    /*function checkOngoingGame() {
+        if(localStorage.getItem("gameID") && localStorage.getItem("shipLocations")) {
+            shipLoc = JSON.parse(localStorage.getItem("shipLocations"))
+            for(i = 0; i < shipLoc.length; i++) {
+                if (shipLoc.orientation = "horizontal") {
+                    for (let j = 0; j < shipLoc[i].size; j++) {
+                        grid.cells[shipLoc[i].row][shipLoc[i].col] = 1
+                        $("p1_cell_" + shipLoc[i].row + "_" + shipLoc[i].col).classList.add("occupied");
+                        shipLoc[i].col++;
+                    }
+                } else {
+                    for (let j = 0; j < shipLoc[i].size; j++) {
+                        grid.cells[shipLoc[i].row][shipLoc[i].col] = 1
+                        $("p1_cell_" + shipLoc[i].row + "_" + shipLoc[i].col).classList.add("occupied");
+                        shipLoc[i].row++;
+                    }
+                }
+            }
+            allPiecesPlaced()
+            initializeWebSockets(localStorage.getItem("gameID"))
+        }
+    }*/
+
     function newGame() {
         grid = new Grid();
 		initial_ship_pos = [];
@@ -602,28 +635,6 @@
 		}
 		return cells;
     }
-
-    /* Populate opponents grid with layout specified, should get this information
-	// from backend
-	// positions should be a list of this [{name: "Carrier", row: 3, col: 1, size: 3, orientation: "horizontal"}, ...]
-	function populateOpponentsGrid(positions) {
-		for (let i = 0; i < positions.length; i++) {
-			let col = positions[i].col;
-			let row = positions[i].row;
-			console.log(positions[i].size)
-			if (positions[i].orientation === "horizontal") {
-				for (let j = 0; j < positions[i].size; j++) {
-					$("p2_cell_" + row + "_" + col).classList.add("occupied");
-					col++;
-				}
-			} else {
-				for (let j = 0; j < positions[i].size; j++) {
-					$("p2_cell_" + row + "_" + col).classList.add("occupied");
-					row++;
-				}
-			}
-		}
-	}*/
 
 	function addHoverToGrid(piece) {
 		let type = piece.innerText
@@ -703,51 +714,37 @@
 					$("pieces").removeChild(piece);
 	
 					if (allPiecesAreRemoved()) {
-						$("pieces").removeChild($("pieces-title"));
-						$("pieces").removeChild($("orientation-button"));
-						console.log(initial_ship_pos);
-						let playerCells = $("player1GB").getElementsByClassName("cell")
-						for (let i = 0; i < playerCells.length; i++) {
-							playerCells[i].classList.add("setup-done");
-						}
-                        $("pieces").style.display = "none";
-                        $("settings").style.display = "block";
-                        addSettingsListeners(initial_ship_pos);
+						allPiecesPlaced()
 					}
 				}
 			}
 		}		
     }
+
+    function allPiecesPlaced() {
+        $("pieces").removeChild($("pieces-title"));
+        $("pieces").removeChild($("orientation-button"));
+        console.log(initial_ship_pos);
+        let playerCells = $("player1GB").getElementsByClassName("cell")
+        for (let i = 0; i < playerCells.length; i++) {
+            playerCells[i].classList.add("setup-done");
+        }
+        $("pieces").style.display = "none";
+        $("settings").style.display = "block";
+        addSettingsListeners(initial_ship_pos);
+    }
     
     function addSettingsListeners(initial_ship_pos) {
-        $("generateID-button").addEventListener("click", function() {
-            let id = generateUniqueID();
-        })
         $("startgame-button").addEventListener("click", function() {
-            $("settings").innerHTML = "Waiting for opponent...";
-            initializeWebSockets();
+            var gameID = $("id-input").value
+            var p = document.createElement("P")
+            p.innerHTML = "Waiting for opponent...";
+            $("settings").appendChild(p)
+            $("id-input").disabled = true;
+            $("friend-input").disabled = true;
+            initializeWebSockets(gameID, $("friend-input").checked);
         });
     }
-
-    function startGame(isRandom, gameID) {
-        // Establish Web Socket connection with a random or friend
-            // send initial position of ships for current user
-            // get back opposing players positions
-            // update opponents grid
-            // populateOpponentsGrid(initial_ship_pos);
-            // add event listeners for each cell (so user can click to attack)
-            // for each move get the result and update the table && statistics
-        if (isRandom) {
-            console.log("Starting game against random");
-        } else {
-            console.log("Starting game with friend with id " + gameID);
-        }
-    }
-
-	function generateUniqueID() {
-		return '_' + Math.random().toString(36).substr(2, 9);
-	}
-
 
 	function isValidLocation(row, col, shipSize) {
         console.log(grid);
@@ -802,12 +799,14 @@
         }
     }
 
-    function initializeWebSockets() {
+    var playWebSocket;
+
+    function initializeWebSockets(inputGameID, friendGame) {
         //let playWebSocket = new WebSocket("ws://localhost:4000/game/play"); 
-        let playWebSocket = new WebSocket("ws://api.dr4gonhouse.me/game/play"); 
+        playWebSocket = new WebSocket("wss://api.dr4gonhouse.me/v1/game/play/?auth=" + localStorage.getItem("authorization")); 
         
         playWebSocket.onmessage = function(event) {
-            if (event.data == "your turn" || event.data == "opponent's turn") {
+            if (event.data.startsWith("your turn|") || event.data.startsWith("opponent's turn|")) {
                 $("settings").style.display = "none";
                 $("stats").style.display = "block";
                 let cells = $("player2GB").childNodes;
@@ -823,21 +822,58 @@
                     cell.onmouseenter = function() {
                         let row = cell.getAttribute("row");
                         let col = cell.getAttribute("col");	
-                        $("p2_cell_" + row + "_" + col).classList.add("hoverAttr");
+                        if($("p2_cell_" + row + "_" + col)) {
+                            $("p2_cell_" + row + "_" + col).classList.add("hoverAttr");
+                        }
                     }
                     cell.onmouseleave = function() {
                         let row = cell.getAttribute("row");
                         let col = cell.getAttribute("col");	
-                        $("p2_cell_" + row + "_" + col).classList.remove("hoverAttr");
+                        if($("p2_cell_" + row + "_" + col)) {
+                            $("p2_cell_" + row + "_" + col).classList.remove("hoverAttr");
+                        }
                     }
                 }
-                if (event.data == "your turn") {
+
+                // setting information for when the user's turn is the first turn
+                if (event.data.startsWith("your turn|")) {
                     turn = true;
                     document.getElementById("whose-turn").innerHTML = "It's your turn";
+                    let playerCells = $("player2GB").getElementsByClassName("cell")
+                    for (let i = 0; i < playerCells.length; i++) {
+                        playerCells[i].classList.remove("setup-done");
+                    }
                 } else {
                     turn = false;
                     document.getElementById("whose-turn").innerHTML = "Your opponent is taking their turn";
+                    let playerCells = $("player2GB").getElementsByClassName("cell")
+                    for (let i = 0; i < playerCells.length; i++) {
+                        playerCells[i].classList.add("setup-done");
+                    }
                 }
+                // used to make game last even if page is refreshed
+                /*localStorage.setItem("shipLocations", sessionStorage.getItem("shipL"))
+                localStorage.setItem("gameID", $('id-input').value)*/
+
+                // adding chat if it doesn't already exist
+                var oppID = event.data.split("|")[1]
+                fetch("https://api.dr4gonhouse.me/v1/users/"+ oppID, {
+                    method: "GET",
+                    headers: {
+                        "authorization": localStorage.getItem("authorization")
+                    }
+                })
+                    .then(async (response) => {
+                        if(response.status >= 300) {
+                            var text = await response.text()
+                            infoDivToggle("error", response.status, text)
+                        } else {
+                            var userInfo = await response.json()
+                            $('opponent-grid-title').innerHTML = userInfo.userName + "'s Board"
+                            addToChatHeader({"friendid":userInfo.id, "username":userInfo.username})
+                        }
+                    }) 
+                    .catch((err) => console.log(err))
             } else if (event.data.split(";").length == 3) {
                 // game is over
                 if (event.data.split(";")[2] == "win") {
@@ -846,33 +882,38 @@
                     document.getElementById("game-over").innerHTML = "You lost :(";
                 }
                 
+                let playerCells = $("player2GB").getElementsByClassName("cell")
+                for (let i = 0; i < playerCells.length; i++) {
+                    playerCells[i].classList.add("setup-done");
+                }
                 // when clicked, should return to home will return the user to the board page
-                document.getElementById("return-to-home").innerHTML = "Return to home";
+                document.getElementById("return-to-home").style.display = "block";
+                document.getElementById("return-to-home").onclick = function() {
+                    location.reload()
+                }
             } else {
                 let coordinates = event.data.split(";")[0].split(",");
                 let row = coordinates[0];
                 let col = coordinates[1];
                 let hitOrMiss = event.data.split(";")[1]
+                let playerCells = $("player2GB").getElementsByClassName("cell")
                 if (document.getElementById("whose-turn").innerHTML == "It's your turn") {
                     $("p2_cell_" + row + "_" + col).classList.add(hitOrMiss);
                     document.getElementById("whose-turn").innerHTML = "Your opponent is taking their turn";
+                    for (let i = 0; i < playerCells.length; i++) {
+                        playerCells[i].classList.add("setup-done");
+                    }
                 } else {
                     $("p1_cell_" + row + "_" + col).classList.add(hitOrMiss);
                     document.getElementById("whose-turn").innerHTML = "It's your turn";
+                    for (let i = 0; i < playerCells.length; i++) {
+                        playerCells[i].classList.remove("setup-done");
+                    }
                 }
             }
         }
 
-        playWebSocket.onopen = () => {
-            //let friendInput = $("friend-input");
-            //let randInput = $("random-input");
-            //if ((friendInput.checked && $("id-input").value.length > 0)) {
-                //let gameID = $("id-input").value;
-                //let isRandom = randInput.checked;
-
-                //startGame(isRandom, gameID);
-            //}
-
+        playWebSocket.onopen = async () => {
             let shipLocations = "";
             for (let i = 0; i < Game.size; i++) {
                 for (let j = 0; j < Game.size; j++) {
@@ -881,15 +922,116 @@
                     }
                 }
             }  
-            let gameID = 1;
-            let message = gameID + ";" + shipLocations;
-            playWebSocket.send(message);
+            checkForGames(inputGameID, friendGame, shipLocations)
+            // used to make game last even if page is refreshed
+            //sessionStorage.setItem("shipL", JSON.stringify(shipLocations))
+        }
+
+        playWebSocket.onerror = (err) => {
+            console.log(err.toString())
         }
         
+        playWebSocket.onclose = () => {
+            alert("Connection closed by you or peer. Refreshing page after you hit ok.")
+            location.reload()
+        }
+
         // sends the location of a user's guess to the websocket
         function sendMoveMessage(row, col) {
             let message = row + "," + col;
             playWebSocket.send(message);
-        }        
+        }   
+        
+        function createNewGame(private, shipLocations) {
+            var token = localStorage.getItem("authorization")
+            var details = {"public":!private}
+            fetch("https://api.dr4gonhouse.me/v1/game", {
+                method: "POST",
+                headers: {
+                    "authorization": token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(details)
+            })
+                .then(async (response) => {
+                    if (response.status >= 300) {
+                        var text = await response.text()
+                        infoDivToggle("error", response.status, text)
+                    } else {
+                        var gameInfo = await response.json()
+                        $('id-input').value = gameInfo.id
+                        $('friend-input').checked = !gameInfo.public
+                        let message = gameInfo.id + ";" + shipLocations;
+                        playWebSocket.send(message);
+                    }
+                })
+                .catch((err) => console.log(err))
+        }
+
+        function checkForGames(gameID, friendGame, shipLocations) {
+            console.log(friendGame)
+            var token = localStorage.getItem("authorization")
+            url = "https://api.dr4gonhouse.me/v1/game"
+            console.log(gameID)
+            if (gameID) {
+                url += "/" + gameID
+            }
+            fetch(url, {
+                method: "GET",
+                headers: {
+                    "authorization": token
+                }
+            })
+                .then(async (response) => {
+                    if(response.status >= 300) {
+                        var text = await response.text()
+                        console.log(text)
+                        if (text == "No games available") {
+                            createNewGame(friendGame, shipLocations)
+                        } else {
+                            infoDivToggle("error", response.status, text)
+                        }
+                    } else {
+                        var gameInfo = await response.json()
+                        var ongoingGame = false
+                        // used to make game last even if page is refreshed
+                        /*gameInfo.players.forEach((player) => {
+                            if(player.username == localStorage.getItem("currUser")) {
+                                $('id-input').value = gameInfo.id
+                                let message = gameInfo.id + ";" + shipLocations;
+                                playWebSocket.send(message);
+                                ongoingGame = true
+                            }
+                        })*/
+                        if(!ongoingGame) {
+                            addUserToGame(gameInfo.id, shipLocations)
+                        }
+                    }
+                })
+                .catch((err) => console.log(err))
+        }
+
+        function addUserToGame(gameID, shipLocations) {
+            var token = localStorage.getItem("authorization")
+            url = "https://api.dr4gonhouse.me/v1/game/" + gameID
+            fetch(url, {
+                method: "PATCH",
+                headers: {
+                    "authorization": token,
+                }
+            })
+                .then(async (response) => {
+                    if(response.status >= 300) {
+                        var text = await response.text()
+                        infoDivToggle("error", response.status, text)
+                    } else {
+                        var gameInfo = await response.json()
+                        $('id-input').value = gameInfo.id
+                        let message = gameInfo.id + ";" + shipLocations;
+                        playWebSocket.send(message);
+                    }
+                })
+                .catch((err) => console.log(err))
+        }
     }
 })()

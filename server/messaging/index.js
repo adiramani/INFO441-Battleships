@@ -132,42 +132,6 @@ app.post("/v1/channels", async (req, res) => {
     })
 });
 
-/*app.get("/v1/channels/:channelID", async (req, res) => {
-    if (!("x-user" in req.headers)) {
-        res.status(403).send("User not authenticated");
-        return;
-    }
-    const {userID} = JSON.parse(req.headers['x-user'])
-    if (!userID) {
-        res.status(403).send("User not authenticated");
-        return;
-    }
-
-    try {
-        res.setHeader("Content-Type", "application/json")
-        const channel = await Channel.findOne({"id":req.params.channelID});
-        if(!channel) {
-            res.status(400).send("Channel does not exist.")
-            return;
-        }
-        if (!channel['members'].some(el => el.id == userID) && channel.private) {
-            res.status(403).send("User not authorized to see channel.");
-            return;
-        }
-
-        if (req.query.before) {
-            const messages = await Message.find({"channelID":channel['id']}).where('id').lt(req.query.before).sort({"id":-1}).limit(100);
-            res.json(messages);
-        } else {
-            const messages = await Message.find({"channelID":channel['id']}).sort({"id":-1}).limit(100);
-            res.json(messages);
-        }
-    } catch (e) {
-        res.status(500).send("Unable to get messages: " + e.toString());
-        return;
-    }
-});*/
-
 var connections = []
 
 app.ws('/v1/channels/:channelID/message', async function(ws, req) {

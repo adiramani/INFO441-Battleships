@@ -54,16 +54,12 @@
 			<div id="settings" class="sidebar">
                 <h2 id="settings-title">Game Settings</h2>
                 <div>
-                    <input id="random-input" type="radio" name="gameType" value="random" checked=true>
-                    <span>Random Opponent</span>
-                </div>
-                <div>
-                    <input id="friend-input" type="radio" name="gameType" value="friend">
+                    <input id="friend-input" type="checkbox" name="gameType" value="friend">
                     <span>Play a Friend</span>
                 </div>
-                <input id="id-input" type="text" placeholder="Enter or generate a uniqueID" size=25>
-                <button id="generateID-button">Generate Unique ID</button>
-                <button id="startgame-button">Start Game</button>
+                <label for="id-input">Input A Code (Leave blank to find/create a random game)</label>
+                <input id="id-input" type="text" name="id-input" placeholder="Enter or generate a uniqueID" size=25>
+                <button id="startgame-button" type="button">Start Game</button>
             </div>
 			<div id="stats" class="sidebar">
                 <h2 id="stats-title">Stats</h2>
@@ -73,14 +69,14 @@
                 <div id="hit-percentage">Hit Percentage: </div>
                 <div id="whose-turn"></div>
                 <div id="game-over"></div>
-                <button id="return-to-home"></button>
+                <button id="return-to-home">Return To Home</button>
             </div>
 			<div id="gameboard">
 				<div id="player1GB" class="grid">
 					<h2 class="grid-title">Your Grid</h2>
 				</div>
 				<div id="player2GB" class="grid">
-					<h2 class="grid-title">Opponent's Grid</h2>
+					<h2 id="opponent-grid-title" class="grid-title">Opponent's Grid</h2>
 				</div>
 			</div>
         </div>

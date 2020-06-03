@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"fmt"
+
 	"github.com/gorilla/websocket"
 )
 
@@ -52,12 +54,27 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil || conn == nil {
+		log.Printf("Error: %s", err)
 		http.Error(w, "Connection error", 500)
 		return
 	}
 
 	for {
-		_, message, _ := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
+		if err != nil {
+			// this deletes the connection for you and your opponent if
+			// one of the connections close
+			if connectedUsers[userID] != nil {
+				if connectedUsers[userID].opponentID != -1 {
+					if connectedUsers[connectedUsers[userID].opponentID] != nil {
+						connectedUsers[connectedUsers[userID].opponentID].connection.Close()
+						delete(connectedUsers, connectedUsers[userID].opponentID)
+					}
+				}
+				delete(connectedUsers, userID)
+			}
+			return
+		}
 		mx.Lock()
 		if connectedUsers[userID] == nil {
 			setUpGame(string(message), userID, conn)
@@ -90,6 +107,7 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 
 	// pieceLocations is a comma seperated list of x, y values representing a user's board layout
 
+	log.Printf(string(message))
 	pieceLocations := strings.Split(strings.Split(string(message), ";")[1], (","))
 
 	user.connection = conn
@@ -100,6 +118,7 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 			opponent := connectedUsers[key]
 			opponent.opponentID = userID
 			opponent.turn = true // might need to reinsert into hashmap?
+			connectedUsers[key] = opponent
 		}
 	}
 
@@ -110,9 +129,9 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 		user.pieceLocations[x][y] = true
 	}
 	if user.opponentID != -1 {
-		user.connection.WriteMessage(1, []byte("opponent's turn"))
+		user.connection.WriteMessage(1, []byte(fmt.Sprintf("opponent's turn|%d", user.opponentID)))
 		opponent := connectedUsers[user.opponentID]
-		opponent.connection.WriteMessage(1, []byte("your turn"))
+		opponent.connection.WriteMessage(1, []byte(fmt.Sprintf("your turn|%d", userID)))
 	}
 }
 
@@ -162,11 +181,11 @@ func gameOver(guessLocations [][]bool, pieceLocations [][]bool) bool {
 func main() {
 	addr := os.Getenv("GAMEADDR")
 	if len(addr) == 0 {
-		addr = ":4000"
+		addr = ":80"
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/game/play", playHandler)
+	mux.HandleFunc("/v1/game/play/", playHandler)
 
 	log.Printf("server is listening at %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
