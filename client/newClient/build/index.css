@@ -275,6 +275,14 @@ input {
     background-color: black !important;
 }
 
+.hit {
+    background-color: red !important;
+}
+
+.miss {
+    background-color: white !important;
+}
+
 .setup-done {
     pointer-events: none !important;
 }

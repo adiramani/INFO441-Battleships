@@ -1,8 +1,10 @@
+
 (function() {
 
     var openConn = null;
 
-    window.onload = function() {
+    
+    window.onload = function() {/*
         document.getElementById("signuppage").onclick = function() {
             document.getElementById("signindiv").style.display = "none"
             document.getElementById("signupdiv").style.display = "block"
@@ -27,9 +29,12 @@
                 console.log(document.activeElement)
                 removeAutocomplete()
             }
-        })*/
-        checkSignedIn()
-
+        })
+        checkSignedIn()*/
+        document.getElementById("signinpage").style.display = "none";
+        document.getElementById("signindiv").style.display = "none"
+        document.getElementById("signupdiv").style.display = "none"
+        document.getElementById("loggedindiv").style.display = "block";
         newGame();
         addSetupListeners();
     }
@@ -37,7 +42,7 @@
     function toggleLandingPage(displays) {
         document.getElementById("signindiv").style.display = displays[0]
         document.getElementById("signupdiv").style.display = displays[1]
-        document.getElementById("loggedindiv").style.display = displays[2]
+        document.getElementById("loggedindiv").style.display = displays[2];
         if (displays[2] == "block") {
             document.getElementById("welcome-header").innerHTML = "Welcome " + localStorage.getItem("currUser")
         }
@@ -536,9 +541,6 @@
 
     }
 
-
-
-
     var grid;
 	const SHIPS = ["carrier", "battleship", "cruiser", "submarine", "destroyer"];
 	var initial_ship_pos;
@@ -601,7 +603,7 @@
 		return cells;
     }
 
-    // Populate opponents grid with layout specified, should get this information
+    /* Populate opponents grid with layout specified, should get this information
 	// from backend
 	// positions should be a list of this [{name: "Carrier", row: 3, col: 1, size: 3, orientation: "horizontal"}, ...]
 	function populateOpponentsGrid(positions) {
@@ -621,7 +623,7 @@
 				}
 			}
 		}
-	}
+	}*/
 
 	function addHoverToGrid(piece) {
 		let type = piece.innerText
@@ -710,28 +712,20 @@
 						}
                         $("pieces").style.display = "none";
                         $("settings").style.display = "block";
-                        addSettingsListeners();
+                        addSettingsListeners(initial_ship_pos);
 					}
 				}
 			}
 		}		
     }
     
-    function addSettingsListeners() {
+    function addSettingsListeners(initial_ship_pos) {
         $("generateID-button").addEventListener("click", function() {
             let id = generateUniqueID();
-            $("id-input").value = id;
         })
         $("startgame-button").addEventListener("click", function() {
-            let randInput = $("random-input");
-            let friendInput = $("friend-input");
-            if (randInput.checked || (friendInput.checked && $("id-input").value.length > 0)) {
-                let gameID = $("id-input").value;
-                let isRandom = randInput.checked;
-                $("settings").style.display = "none";
-                $("stats").style.display = "block";
-                startGame(isRandom, gameID);
-            }
+            $("settings").innerHTML = "Waiting for opponent...";
+            initializeWebSockets();
         });
     }
 
@@ -740,11 +734,11 @@
             // send initial position of ships for current user
             // get back opposing players positions
             // update opponents grid
-            populateOpponentsGrid(initial_ship_pos);
+            // populateOpponentsGrid(initial_ship_pos);
             // add event listeners for each cell (so user can click to attack)
             // for each move get the result and update the table && statistics
         if (isRandom) {
-            console.log("Strting game against random");
+            console.log("Starting game against random");
         } else {
             console.log("Starting game with friend with id " + gameID);
         }
@@ -756,6 +750,7 @@
 
 
 	function isValidLocation(row, col, shipSize) {
+        console.log(grid);
 		if (isHorizontal) {
 			if (col + shipSize < 11) {
 				for (let i = 0; i < shipSize; i++) {
@@ -805,5 +800,96 @@
                 addHoverToGrid(piece)
             };
         }
+    }
+
+    function initializeWebSockets() {
+        //let playWebSocket = new WebSocket("ws://localhost:4000/game/play"); 
+        let playWebSocket = new WebSocket("ws://api.dr4gonhouse.me/game/play"); 
+        
+        playWebSocket.onmessage = function(event) {
+            if (event.data == "your turn" || event.data == "opponent's turn") {
+                $("settings").style.display = "none";
+                $("stats").style.display = "block";
+                let cells = $("player2GB").childNodes;
+                for (let i = 0; i < cells.length; i++) {
+                    let cell = cells[i];
+                    cell.onclick = function () {
+                        let row = cell.getAttribute("row");
+                        let col = cell.getAttribute("col");
+                        console.log(row);
+                        console.log(col);
+                        sendMoveMessage(row, col);
+                    }
+                    cell.onmouseenter = function() {
+                        let row = cell.getAttribute("row");
+                        let col = cell.getAttribute("col");	
+                        $("p2_cell_" + row + "_" + col).classList.add("hoverAttr");
+                    }
+                    cell.onmouseleave = function() {
+                        let row = cell.getAttribute("row");
+                        let col = cell.getAttribute("col");	
+                        $("p2_cell_" + row + "_" + col).classList.remove("hoverAttr");
+                    }
+                }
+                if (event.data == "your turn") {
+                    turn = true;
+                    document.getElementById("whose-turn").innerHTML = "It's your turn";
+                } else {
+                    turn = false;
+                    document.getElementById("whose-turn").innerHTML = "Your opponent is taking their turn";
+                }
+            } else if (event.data.split(";").length == 3) {
+                // game is over
+                if (event.data.split(";")[2] == "win") {
+                    document.getElementById("game-over").innerHTML = "You won!";
+                } else {
+                    document.getElementById("game-over").innerHTML = "You lost :(";
+                }
+                
+                // when clicked, should return to home will return the user to the board page
+                document.getElementById("return-to-home").innerHTML = "Return to home";
+            } else {
+                let coordinates = event.data.split(";")[0].split(",");
+                let row = coordinates[0];
+                let col = coordinates[1];
+                let hitOrMiss = event.data.split(";")[1]
+                if (document.getElementById("whose-turn").innerHTML == "It's your turn") {
+                    $("p2_cell_" + row + "_" + col).classList.add(hitOrMiss);
+                    document.getElementById("whose-turn").innerHTML = "Your opponent is taking their turn";
+                } else {
+                    $("p1_cell_" + row + "_" + col).classList.add(hitOrMiss);
+                    document.getElementById("whose-turn").innerHTML = "It's your turn";
+                }
+            }
+        }
+
+        playWebSocket.onopen = () => {
+            //let friendInput = $("friend-input");
+            //let randInput = $("random-input");
+            //if ((friendInput.checked && $("id-input").value.length > 0)) {
+                //let gameID = $("id-input").value;
+                //let isRandom = randInput.checked;
+
+                //startGame(isRandom, gameID);
+            //}
+
+            let shipLocations = "";
+            for (let i = 0; i < Game.size; i++) {
+                for (let j = 0; j < Game.size; j++) {
+                    if (grid.cells[i][j] == 1) {
+                        shipLocations += i + "," + j + ",";
+                    }
+                }
+            }  
+            let gameID = 1;
+            let message = gameID + ";" + shipLocations;
+            playWebSocket.send(message);
+        }
+        
+        // sends the location of a user's guess to the websocket
+        function sendMoveMessage(row, col) {
+            let message = row + "," + col;
+            playWebSocket.send(message);
+        }        
     }
 })()
