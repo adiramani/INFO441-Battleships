@@ -207,10 +207,6 @@
             .catch((err) => console.log(err))
     }
 
-    function deleteUser() {
-
-    }
-
     function addFriend() {
         infoDivToggle("reset", null, null)
         var token = localStorage.getItem("authorization")
@@ -393,6 +389,8 @@
             var msg = document.getElementById("chat-input-text").value
             openConn.send(msg)   
             document.getElementById("chat-text").innerHTML += "<div id=chat-sent>" + msg + "</div>"
+            document.getElementById("chat-text").scrollTop = document.getElementById("chat-text").scrollHeight
+            document.getElementById("chat-input-text").value = ""
         }
         conn.onopen = function() {
             document.getElementById("send-chat").addEventListener("click", messageHandler)
@@ -412,7 +410,6 @@
             console.log(messages)
             if(messages["type"] && messages["type"] == "old") {
                 var sortedMsgs = messages['messages'].sort((a, b) =>  Date.parse(a.createdAt) - Date.parse(b.createdAt))
-                console.log(sortedMsgs)
                 for (var i = 0; i < sortedMsgs.length; i++) {
                     if (sortedMsgs[i].creator.username != localStorage.getItem("currUser")) {
                         document.getElementById("chat-text").innerHTML += "<div id=chat-received>" + sortedMsgs[i].body + "</div>"
@@ -420,9 +417,10 @@
                         document.getElementById("chat-text").innerHTML += "<div id=chat-sent>" + sortedMsgs[i].body + "</div>"
                     }
                 }
+                document.getElementById("chat-text").scrollTop = document.getElementById("chat-text").scrollHeight
             } else {
-                document.getElementById("chat-text").innerHTML += "<div id=chat-received>" + sortedMsgs.body + "</div>"
-                document.getElementById("chat-input-text").value = ""
+                document.getElementById("chat-text").innerHTML += "<div id=chat-received>" + messages.body + "</div>"
+                document.getElementById("chat-text").scrollTop = document.getElementById("chat-text").scrollHeight
             }
         }
     }

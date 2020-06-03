@@ -9,6 +9,17 @@
     width: 100%;
 }
 
+
+#loggedin-title {
+    float: left;
+    text-align: right;
+}
+
+/*#signout{
+    float:right;
+}*/
+
+
 #signindiv {
     width: 10vw;
     margin: auto;
@@ -28,7 +39,7 @@
     width: 15vw;
     height: 40vh;
     bottom:0;
-    right:0;
+    left:0;
     border: thick solid black;
 }
 
@@ -52,14 +63,6 @@ input {
     background-color: white;
 }
 
-#welcome-header {
-    width: 300%;
-}
-
-/*#chat-received {
-    width: 50%;
-    float: left;
-}*/
 #friendsdiv h4 {
     margin: 2%;
 }
@@ -95,7 +98,7 @@ input {
     width: 15vw;
     height: 40vh;
     bottom:0;
-    right:16vw;
+    left:16vw;
     border: thick solid black;
     margin: none;
 }
@@ -105,17 +108,19 @@ input {
     position: relative;
 }
 
-#chat-close {
+/*#chat-close {
     position: absolute;
     border: thin solid black;
     background-color: rgba(97, 97, 97, 0.5);
     padding: 1%;
     top: 0;
     right: 0;
-}
+}*/
 
 #chat-header {
     overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
     /*height: 30%;*/
     width: 100%;
 }
@@ -191,12 +196,14 @@ input {
 }
 
 #game {
+    float: right;
     /* position: absolute; */
     width: 1000px;
     /* height: 40vh; */
     bottom:0;
     /* right:16vw; */
-    /* border: thick solid black; */
+    border: thick transparent black;
+    background-color: rgba(240, 240, 240, 0.651);
     margin: none;
 }
 
