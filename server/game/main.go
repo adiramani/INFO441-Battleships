@@ -1,8 +1,8 @@
 package main
 
 import (
-	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,49 +20,69 @@ var upgrader = websocket.Upgrader{
 }
 
 type connectedUser struct {
-	connection           *websocket.Conn
-	opponentID           int
-	gameID               int
-	pieceLocations       [][]bool
-	guessLocations       [][]bool
-	turn                 bool
-	pieceLocationsLoaded bool
+	connection     *websocket.Conn
+	opponentID     int
+	gameID         string
+	pieceLocations [][]bool
+	guessLocations [][]bool
+	turn           bool
 }
 
 // contains all users currently playing the game
 var connectedUsers map[int]*connectedUser
 
 // startGameHandler stores information about a user
-func startGameHandler(w http.ResponseWriter, r *http.Request) {
-	user := &connectedUser{}
-	userID, err := strconv.Atoi(r.Header.Get("userID"))
-	gameID, err2 := strconv.Atoi(r.Header.Get("gameID"))
-	if err != nil || err2 != nil {
-		http.Error(w, "userID and gameID are not integers", 400)
+func playHandler(w http.ResponseWriter, r *http.Request) {
+	if len(connectedUsers) == 0 {
+		connectedUsers = make(map[int]*connectedUser)
+	}
+
+	//userID, err := strconv.Atoi(r.Header.Get("X-User"))
+	userID := rand.Intn(100)
+	// allow requests from web browsers
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil || conn == nil {
+		http.Error(w, "Connection error", 500)
 		return
 	}
+
+	for {
+		_, message, _ := conn.ReadMessage()
+		mx.Lock()
+		if connectedUsers[userID] == nil {
+			setUpGame(string(message), userID, conn)
+		} else {
+			handleMove(string(message), userID)
+		}
+		mx.Unlock()
+	}
+
+}
+
+func setUpGame(message string, userID int, conn *websocket.Conn) {
+	user := &connectedUser{}
+	gameID := strings.Split(string(message), ";")[0]
 	user.gameID = gameID
 	user.opponentID = -1
 	user.turn = false
 
-	pieceLocations := make([][]bool, 8)
-	for i := range pieceLocations {
-		pieceLocations[i] = make([]bool, 8)
+	piecesBoard := make([][]bool, 10)
+	for i := range piecesBoard {
+		piecesBoard[i] = make([]bool, 10)
 	}
-	user.pieceLocations = pieceLocations
+	user.pieceLocations = piecesBoard
 
-	guessLocations := make([][]bool, 8)
-	for i := range guessLocations {
-		guessLocations[i] = make([]bool, 8)
+	guessBoard := make([][]bool, 10)
+	for i := range guessBoard {
+		guessBoard[i] = make([]bool, 10)
 	}
-	user.guessLocations = guessLocations
+	user.guessLocations = guessBoard
 
-	mx.Lock()
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Connection error", 500)
-		return
-	}
+	// pieceLocations is a comma seperated list of x, y values representing a user's board layout
+
+	pieceLocations := strings.Split(strings.Split(string(message), ";")[1], (","))
+
 	user.connection = conn
 	// if both players for a game are connected, we can start the game
 	for key := range connectedUsers {
@@ -71,75 +91,50 @@ func startGameHandler(w http.ResponseWriter, r *http.Request) {
 			opponent := connectedUsers[key]
 			opponent.opponentID = userID
 			opponent.turn = true // might need to reinsert into hashmap?
-			user.connection.WriteMessage(1, []byte("Display board"))
-			opponent.connection.WriteMessage(1, []byte("Display board"))
 		}
 	}
+
 	connectedUsers[userID] = user
-	mx.Unlock()
-}
-
-// boardLayoutHandler stores a user's board layout (positions of their pieces)
-func boardLayoutHandler(w http.ResponseWriter, r *http.Request) {
-	// body could be made by scanning through the board when user presses ready and adding locations with pieces to a string
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "An error occurred when reading the request body", 400)
-		return
-	}
-	// pieceLocations is a comma seperated list of x, y values representing a user's board layout
-	pieceLocations := strings.Split(string(body), (","))
-
-	userID, _ := strconv.Atoi(r.Header.Get("userID"))
-	mx.Lock()
-	user := connectedUsers[userID]
-	opponent := connectedUsers[user.opponentID]
-	for i := 0; i < 34; i += 2 {
+	for i := 0; i < 33; i += 2 {
 		x, _ := strconv.Atoi(pieceLocations[i])
 		y, _ := strconv.Atoi(pieceLocations[i+1])
 		user.pieceLocations[x][y] = true
 	}
-	if opponent.pieceLocationsLoaded {
-		user.connection.WriteMessage(1, []byte("Start game"))
-		opponent.connection.WriteMessage(1, []byte("Start game"))
-		return
+	if user.opponentID != -1 {
+		user.connection.WriteMessage(1, []byte("opponent's turn"))
+		opponent := connectedUsers[user.opponentID]
+		opponent.connection.WriteMessage(1, []byte("your turn"))
 	}
-	user.pieceLocationsLoaded = true
-	mx.Unlock()
 }
 
-// moveHandler handles moves by players
-func moveHandler(w http.ResponseWriter, r *http.Request) {
-	userID, _ := strconv.Atoi(r.Header.Get("userID"))
-	// body consists of a row, col which are the hit for where the user wants to guess.
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "An error occurred when reading the request body", 400)
-		return
-	}
-	x, _ := strconv.Atoi(strings.Split(string(body), (","))[0])
-	y, _ := strconv.Atoi(strings.Split(string(body), (","))[1])
+func handleMove(message string, userID int) {
+	x, _ := strconv.Atoi(strings.Split(string(message), (","))[0])
+	y, _ := strconv.Atoi(strings.Split(string(message), (","))[1])
 
-	mx.Lock()
 	user := connectedUsers[userID]
 	opponent := connectedUsers[user.opponentID]
 
 	user.guessLocations[x][y] = true
-	if gameOver(user.guessLocations, opponent.pieceLocations) {
-		user.connection.WriteMessage(1, []byte("You won!"))
-		opponent.connection.WriteMessage(1, []byte("You lost :("))
-		delete(connectedUsers, userID)
-		delete(connectedUsers, user.opponentID)
-		mx.Unlock()
-		// communicate with api so that the game microservice can reuse the game id later?
-		return
-	}
 	user.turn = false
 	opponent.turn = true
-	// returns the coordinate in "x,y" format of the user's move.
-	user.connection.WriteMessage(1, []byte(strconv.Itoa(x)+","+strconv.Itoa(y)))
-	opponent.connection.WriteMessage(1, []byte(strconv.Itoa(x)+","+strconv.Itoa(y)))
-	mx.Unlock()
+	// returns blue for a hit, red for a miss
+	hitOrMiss := "miss"
+	if user.guessLocations[x][y] && opponent.pieceLocations[x][y] {
+		hitOrMiss = "hit"
+	}
+	gameOver := gameOver(user.guessLocations, opponent.pieceLocations)
+	userMessage := strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
+	opponentMessage := strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
+	if gameOver {
+		userMessage += ";win"
+		opponentMessage += ";loss"
+	}
+	user.connection.WriteMessage(1, []byte(userMessage))
+	opponent.connection.WriteMessage(1, []byte(opponentMessage))
+	if gameOver {
+		delete(connectedUsers, userID)
+		delete(connectedUsers, user.opponentID)
+	}
 }
 
 // Returns a boolean indicating whether or not the current game is over
@@ -156,16 +151,13 @@ func gameOver(guessLocations [][]bool, pieceLocations [][]bool) bool {
 }
 
 func main() {
-	addr := os.Getenv("ADDR")
+	addr := os.Getenv("GAMEADDR")
 	if len(addr) == 0 {
 		addr = ":4000"
 	}
 
 	mux := http.NewServeMux()
-
-	mux.HandleFunc("/game/start", startGameHandler)
-	mux.HandleFunc("/game/board", boardLayoutHandler)
-	mux.HandleFunc("/game/move", moveHandler)
+	mux.HandleFunc("/game/play", playHandler)
 
 	log.Printf("server is listening at %s", addr)
 	log.Fatal(http.ListenAndServe(addr, mux))
