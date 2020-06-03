@@ -38,9 +38,9 @@
         document.getElementById("signindiv").style.display = displays[0]
         document.getElementById("signupdiv").style.display = displays[1]
         document.getElementById("loggedindiv").style.display = displays[2];
-        if (displays[2] == "block") {
-            document.getElementById("welcome-header").innerHTML = "Welcome " + localStorage.getItem("currUser")
-        }
+        // if (displays[2] == "block") {
+        //     document.getElementById("welcome-header").innerHTML = "Welcome " + localStorage.getItem("currUser")
+        // }
     }
 
     function infoDivToggle(func, status, text) {
