@@ -1,30 +1,32 @@
 # INFO441-Battleships
 
+Created by Aditya Ramani, Beichen Liang, Liam O'Keeffe, and Liam Sexton
+
 ## Project Description:
 
-For our project we will be building a battleship game. Our target audience are people who are feeling disconnected from their friends over the past couple months due to the extenuating circumstances of covid and want to find a way to play games with their friends. Our target audience will want to use our application because it will give them a way to connect with their friends and will contain features that other battleship games may not have. There are a few online battleship games in the market, but not many of them have a chat feature, where people can connect with the people they are playing against and converse (or even trash talk!). In addition to this, if realized, our battleship game will have extra moves that you may not see in a normal game of battleships, for example cluster strikes or random targeting. As developers, we want to build this app because it is something people can use to have fun. During this time, a lot of people may be stressed out, bored, and lonely. This application will let us build something that can be used for entertainment, and helping alleviate some of their problems. In addition, all of us love playing battleships too, so we can enjoy the application with our friends once we've finished!
+We built an online battleship game for our project. Our target audience is people who are feeling disconnected from their friends over the past few months due to the extenuating circumstances of COVID-19 and want to find a way to play games with their friends. These people will want to use our application because it is fun game that they can play with their friends. There are a few online battleship games in the market, but not many of them have a chat feature, where people can connect with the people they are playing against and converse (or even trash talk!). Users can also play against random opponents. As developers, we wanted to build this app because it will enable our target audience to connect and have fun with others. In addition, all of us love playing battleships too, so we can enjoy the application with our friends once we've finished!
 
 ## Technical Description:
 
-#### Architectural diagram (numbers represent ports):
+#### Architectural diagram:
 
-![Architectural Diagram](/readme_images/architectural%20diagram.png)
+![Architectural Diagram](readme_images/architectural_diagram.png)
 
 #### User Stories
 
-Priority|User|Function/Description|Technology/Implimentation
---------|----|--------------------|-------------------------
-P0|As a player|I want to create an account on the website|Create a new entry in the Player table
-P0|As a player|I want to create a game for another person to join via code|Create a new entry in the Game table, and the player_game table
-P0|As a player|I want to make moves and win a game vs another player|Create a new entry in the move_player_game table
-P0|As a player|I want to join a game via code|Create a new entry in the player_game table
-P1|As a player|I want to create a public game|Create a New entry in the game and player game table, allow the gameCode to be visible to anyone
-P1|As a player|I want to join game via search for public lobbies|Search for all public gameCodes, and once one is selected, make a new entry in the player_game table
-P2|As a player|I want to play games against the CPU. |CPU can be a generated “player.” Create a new entry in game and player_game, for both the CPU and player, have the CPU make a random move after the player makes a move
-P2|As a player|I want to chat with other players while playing|Create an entry in the chat and 2 in the player_chat table, and open a websocket pipeline to be able to receive and send messages. Messages stored in the player_chat_messagetable
-P3|As a player|I want to make a group chat with people I play with often|Create an entry in the chat table, and as many entries in the player_chat table as users requested. Open a websocket pipeline to be able to receive and send messages. Messages stored in the player_chat_messagetable
-P3|As a player|I want to see where I rank based on number of wins|Pull down a list of all players sorted by the number of entries in player_game with win as True
+Priority|User|Function/Description|Technology/Implementation|Implemented?
+--------|----|--------------------|-------------------------|:------:
+P0|As a player|I want to create an account on the website|Create a new entry in the Player table|Yes
+P0|As a player|I want to create a game for another person to join via code|Create a new entry in the Game table, and the player_game table|Yes
+P0|As a player|I want to make moves and win a game vs another player|Create a new entry in the move_player_game table|Yes
+P0|As a player|I want to join a game via code|Create a new entry in the player_game table|Yes
+P1|As a player|I want to create a public game|Create a New entry in the game and player game table, allow the gameCode to be visible to anyone|Yes
+P1|As a player|I want to join game via search for public lobbies|Search for all public gameCodes, and once one is selected, make a new entry in the player_game table|Yes
+P2|As a player|I want to play games against the CPU. |CPU can be a generated “player.” Create a new entry in game and player_game, for both the CPU and player, have the CPU make a random move after the player makes a move|No
+P2|As a player|I want to chat with other players while playing|Create an entry in the chat and 2 in the player_chat table, and open a websocket pipeline to be able to receive and send messages. Messages stored in the player_chat_messagetable|Yes
+P3|As a player|I want to make a group chat with people I play with often|Create an entry in the chat table, and as many entries in the player_chat table as users requested. Open a websocket pipeline to be able to receive and send messages. Messages stored in the player_chat_messagetable|No
 
+The user stories not implemented above would likely be implemented in a future iteration of the project.
 
 #### Endpoints
 
@@ -121,7 +123,8 @@ P3|As a player|I want to see where I rank based on number of wins|Pull down a li
 
 ## Database Schema:
 https://app.lucidchart.com/invitations/accept/0697ccf4-8483-4385-9f6d-fc84ec2417ca
-![Architectural Diagram](/readme_images/erd.png)
+![Architectural Diagram](readme_images/erd.png)
 
 
 
+ 
