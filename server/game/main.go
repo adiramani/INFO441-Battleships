@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
@@ -36,9 +35,19 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	if len(connectedUsers) == 0 {
 		connectedUsers = make(map[int]*connectedUser)
 	}
+	if r.Header.Get("X-User") == "" {
+		http.Error(w, "Error: unauthorized request", 401)
+		return
+	}
 
-	//userID, err := strconv.Atoi(r.Header.Get("X-User"))
-	userID := rand.Intn(100)
+	// extract integer ID from header
+	strUserID := strings.Split(r.Header.Get("X-User"), ":")[1]
+	strUserID = strUserID[:len(strUserID)-1]
+	userID, err := strconv.Atoi(strUserID)
+	if err != nil {
+		http.Error(w, "Error: user ID is not an integer", 400)
+		return
+	}
 	// allow requests from web browsers
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := upgrader.Upgrade(w, r, nil)
