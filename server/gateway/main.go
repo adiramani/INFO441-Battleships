@@ -21,7 +21,7 @@ import (
 func main() {
 	addr := os.Getenv("ADDR")
 	if len(addr) == 0 {
-		addr = ":443"
+		addr = ":4443"
 	}
 
 	TLSCERT := os.Getenv("TLSCERT")
@@ -32,6 +32,7 @@ func main() {
 	SUMMARYADDR := strings.Split(os.Getenv("SUMMARYADDR"), ",")
 	MESSAGESADDR := strings.Split(os.Getenv("MESSAGESADDR"), ",")
 	SOCIALADDR := os.Getenv("SOCIALADDR")
+	GAMEADDR := os.Getenv("GAMEADDR")
 
 	if len(REDISADDR) == 0 {
 		REDISADDR = "127.0.0.1:6379"
@@ -123,6 +124,23 @@ func main() {
 	}
 	socialProxy := &httputil.ReverseProxy{Director: socialDirector}
 
+	gameDirector := func(r *http.Request) {
+		auth := r.Header.Get("Authorization")
+		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
+		sessState := &handlers.SessionState{}
+		err := handlerContext.SessStore.Get(authUserSessID, sessState)
+		if err == nil {
+			r.Header.Set("X-User", fmt.Sprintf("{\"userID\":%d}", sessState.User.ID))
+		} else {
+			r.Header.Del("X-User")
+		}
+
+		r.Host = GAMEADDR
+		r.URL.Host = GAMEADDR
+		r.URL.Scheme = "http"
+	}
+	gameProxy := &httputil.ReverseProxy{Director: gameDirector}
+
 	mux := http.NewServeMux()
 
 	mux.Handle("/v1/summary", summaryProxy)
@@ -131,6 +149,7 @@ func main() {
 	mux.Handle("/v1/messages/", messageProxy)
 	mux.Handle("/v1/friends", socialProxy)
 	mux.Handle("/v1/friends/", socialProxy)
+	mux.Handle("/v1/game/", gameProxy)
 	mux.HandleFunc("/v1/users", handlerContext.UsersHandler)
 	mux.HandleFunc("/v1/users/", handlerContext.SpecficUserHandler)
 	mux.HandleFunc("/v1/sessions", handlerContext.SessionsHandler)
