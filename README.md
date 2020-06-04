@@ -44,12 +44,21 @@ The user stories not implemented above would likely be implemented in a future i
     * New Player account with ID (JSON)
       * Without email or password hash
     * Start a new player session as well
+    * Error Codes
+      * 500 - internal error
+      * 401 - unauthorized user
+      * 415 - content-type not json
 * GET /v1/player/{id} - get a players information from ID or the currently authenticated user
   * Input: 
     * id parameter
   * Output: 
     * Player account for the specified ID in JSON
     * Get ID of currently authenticated user from session store if id == ‘me’
+    * Error Codes
+      * 500 - internal error
+      * 403 - forbidden to get user
+      * 401 - unauthorized user
+      * 404 - unable to find user
 * POST /v1/sessions - start a session for a user based on sign in information
   * Input: User sign in information
     * email (string)
@@ -57,11 +66,18 @@ The user stories not implemented above would likely be implemented in a future i
   * Output: 
     * Player account for the authenticated user in JSON
     * Begin session for user by assigning a session ID if credentials match user information in player database
-    * Any errors
+    * Error Codes
+      * 500 - internal error
+      * 401 - unauthorized user
+      * 415 - content-type not json
 * DELETE /v1/sessions/mine
     * Output: 
       * Plain text confirming session has ended
       * End the current authenticated user’s session
+      * Error Codes
+        * 500 - internal error
+        * 403 - forbidden to have anypath but mine
+        * 401 - unauthorized user
 
 **Social Endpoints:**
 * GET /v1/friends
@@ -70,6 +86,9 @@ The user stories not implemented above would likely be implemented in a future i
   * Output: 
     * JSON object of all friends and friend requests for user
     * Any errors
+      * 500 - internal error
+      * 403 - unauthorized user
+      * 200 - success
 * POST /v1/friends/{username}
   * Input: 
     * friend username - username of friend you want to make the request about
@@ -77,12 +96,20 @@ The user stories not implemented above would likely be implemented in a future i
     * rejected (bool) - is it a request to reject
   * Output: 
     * Success/Failure message
+    * Error Codes
+      * 500 - internal error
+      * 403 - unauthorized user
+      * 400 - bad request (invalid params, trying to friend yourself)
+      * 201 - success
 * GET /v1/friends/{partialUserName}
   * Input: 
     * partial username (string)
   * Output: 
     * Array of user objects whose username starts with the partial username
     * Any errors
+      * 500 - internal error
+      * 403 - unauthorized user
+      * 200 - success
 
 **Chat Endpoints:**
 * POST /v1/channels - create a chat with another player based on body info
@@ -94,6 +121,10 @@ The user stories not implemented above would likely be implemented in a future i
   * Output: 
     * New Chat model in JSON with ID
     * Errors if any occur
+      * 500 - internal error
+      * 403 - unauthorized user
+      * 400 - invalid inputs, or unable to create channel
+      * 201 - success
 * GET v1/channels?friendid= - get a certain chat room based on another user's id
   * Input: 
     * optional friendid url parameter
@@ -103,6 +134,9 @@ The user stories not implemented above would likely be implemented in a future i
     * else
       * A list of channel objects the user is a member of
     * Errors if any occur
+      * 500 - internal error
+      * 403 - unauthorized user
+      * 200 - success
 * WEBSOCKET /v1/chat/{id}/message - pipeline for messages for a given chat id. Can only be accessed if user is authorized to see it
   * Input
     * chat ID from request URL
@@ -118,24 +152,46 @@ The user stories not implemented above would likely be implemented in a future i
     * Sending
       * Chat message model in JSON with new ID, status 201
       * Any errors that occur
+        * Errors send back with "Error: " at the beginning.
 
 **Game Endpoints:**
 * GET /v1/game - get an available public game
   * Output: 
     * If there is a public available game, return the game object
     * Else return 400 error with text "No games available"
+    * Other Errors
+      * 403 - unauthorized user
+      * 500 - internal error
 * POST /v1/game - create a new game, return a gameID
   * Input: 
       * public (bool) - whether the game is public or not
   * Output: 
     * New game model in JSON with new ID
     * Error if one occurs
-* GET /v1/game/{id} -return game information to play the game based on game id, if it exists
+      * 403 - unauthorized user
+      * 500 - internal error
+      * 400 - unable to find user
+      * 201 - success
+* GET /v1/game/{id} - return game information to play the game based on game id, if it exists
   * Input: 
     * gameID from request URL
   * Output: 
     * Game model in JSON
     * Error if one occurs
+      * 403 - unauthorized user
+      * 400 - no available games
+      * 200 - success
+      * 500 - internal error
+* PATCH /v1/game/{id} - add another player to the game
+  *  Input: 
+    * gameID from request URL
+  * Output: 
+    * Updated Game model in JSON
+    * Error if one occurs
+      * 403 - unauthorized user
+      * 400 - gameid not found
+      * 200 - success
+      * 500 - internal error
 * WEBSOCKET /v1/game/play/- pipeline for moves in a game provided by a certain ID
   * Input: 
     * Ensure a player is authorized, a player in the specified game, and it is their current turn
@@ -150,11 +206,19 @@ The user stories not implemented above would likely be implemented in a future i
     * Server Sending
       * Any failure errors
       * Move information encoded in a string
+    * Error codes
+      * 500
+      * 400
 * DELETE /v1/game/{id} - end a game. Only accessed if a game is won, or if a player forfeits
   * Input: 
     * gameID from request URL
   * Output: 
     * Plain text confirming end of game/result
+    * Error Codes
+      * 403 - unauthorized
+      * 500 - internal error
+      * 200 - success
+      * 400 - invalid gameID
   * Only allowed if a player doesn't get matched with an opponent and severs the connection with the server
 
 

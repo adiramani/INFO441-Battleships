@@ -94,7 +94,7 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
     
     var {accepted, reject} = req.body
     if (accepted == null) {
-        res.status(500).send("No accepted passed in - internal error")
+        res.status(400).send("No accepted passed in")
         return
     }
 
@@ -104,11 +104,11 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
         if (row[0] && row[0].id) {
             friendID = row[0].id
             if (friendID == userID) {
-                res.status(403).send("Can't friend yourself")
+                res.status(400).send("Can't friend yourself")
                 return;
             }
         } else {
-            res.status(403).send("Unable to find friend")
+            res.status(400).send("Unable to find friend")
             return;
         }
 
@@ -124,7 +124,7 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
         const check = await querySQL("SELECT * FROM friends WHERE friendid=" + mysql.escape(friendID) + " AND userid=" +
             mysql.escape(userID))
         if (check[0]) {
-            res.status(403).send("Already sent request to this user")
+            res.status(400).send("Already sent request to this user")
             return;
         }
 
