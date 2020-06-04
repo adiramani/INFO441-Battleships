@@ -439,7 +439,6 @@
                 .then(async (response) => {
                     if(response.status >= 300) {
                         var text = await response.text()
-                        console.log(text)
                         if (text == "No games available") {
                             createNewGame(friendGame, shipLocations)
                         } else {

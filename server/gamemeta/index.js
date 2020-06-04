@@ -57,7 +57,7 @@ app.get("/v1/game", async (req, res) => {
     }
 
     try {
-        const game = await Game.findOne({"available":true})
+        const game = await Game.findOne().and([{"available":true}, {'players.id': {$ne: userID}}])
         if (!game || game['players'].length >= 2) {
             res.status(400).send("No games available")
             return;
@@ -138,7 +138,6 @@ app.patch("/v1/game/:gameID", async (req, res) => {
             return;
         }
         if (game['players'].length >= 2) {
-            console.log(game)
             res.status(400).send("The game is already full")
             return
         }
@@ -228,15 +227,16 @@ app.delete("/v1/game/:gameID", async (req, res) => {
             res.status(403).send("User not authorized to delete this game");
             return;
         }
-
-        await Game.deleteOne({"id":req.params.gameID}, function (err) {
-            if (err) {
-                res.status(500).send("Unable to delete the game");
-                return;
-            }
-            res.setHeader("Content-Type", "text/plain");
-            res.status(200).send("Game deleted successfully.");
-        })
+        if(game['players'].length == 1) {
+            await Game.deleteOne({"id":req.params.gameID}, function (err) {
+                if (err) {
+                    res.status(500).send("Unable to delete the game");
+                    return;
+                }
+                res.setHeader("Content-Type", "text/plain");
+                res.status(200).send("Game deleted successfully.");
+            })
+        }
     } catch (e) {
         res.status(500).send("Unable to delete game: " + e.toString());
         return;
