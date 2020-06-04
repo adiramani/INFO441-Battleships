@@ -101,7 +101,7 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		if connectedUsers[userID] == nil {
 			setUpGame(string(message), userID, conn)
 		} else {
-			handleMove(string(message), userID)
+			handleMove(string(message), userID, w)
 		}
 		mx.Unlock()
 	}
@@ -150,13 +150,13 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 		user.pieceLocations[x][y] = true
 	}
 	if user.opponentID != -1 {
-		user.connection.WriteMessage(1, []byte(fmt.Sprintf("opponent's turn|%d", user.opponentID)))
+		user.connection.WriteMessage(1, []byte(fmt.Sprintf("opponent's turn|%d|%v", user.opponentID, connectedUsers[user.opponentID].pieceLocations)))
 		opponent := connectedUsers[user.opponentID]
-		opponent.connection.WriteMessage(1, []byte(fmt.Sprintf("your turn|%d", userID)))
+		opponent.connection.WriteMessage(1, []byte(fmt.Sprintf("your turn|%d|%v", userID, user.pieceLocations)))
 	}
 }
 
-func handleMove(message string, userID int) {
+func handleMove(message string, userID int, w http.ResponseWriter) {
 	x, _ := strconv.Atoi(strings.Split(string(message), (","))[0])
 	y, _ := strconv.Atoi(strings.Split(string(message), (","))[1])
 
@@ -164,29 +164,66 @@ func handleMove(message string, userID int) {
 	opponent := connectedUsers[user.opponentID]
 	if opponent == nil {
 		log.Printf("unable to find opponent")
+		http.Error(w, "Error: Unable to find opponent", 500)
 		return
 	}
-
-	user.guessLocations[x][y] = true
+	if user == nil {
+		log.Printf("unable to find user")
+		http.Error(w, "Error: Unable to find user", 500)
+		return
+	}
+	times := 1
+	horiz := false
+	vert := false
+	if strings.HasSuffix(string(message), ",horizthreeshot") {
+		times = 3
+		horiz = true
+		vert = false
+	} else if strings.HasSuffix(string(message), ",verttwoshot") {
+		times = 2
+		vert = true
+		horiz = false
+	}
 	user.turn = false
 	opponent.turn = true
 	// returns blue for a hit, red for a miss
-	hitOrMiss := "miss"
-	if user.guessLocations[x][y] && opponent.pieceLocations[x][y] {
-		hitOrMiss = "hit"
-	}
-	gameOver := gameOver(user.guessLocations, opponent.pieceLocations)
-	userMessage := strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
-	opponentMessage := strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
-	if gameOver {
-		userMessage += ";win"
-		opponentMessage += ";loss"
-	}
-	user.connection.WriteMessage(1, []byte(userMessage))
-	opponent.connection.WriteMessage(1, []byte(opponentMessage))
-	if gameOver {
-		delete(connectedUsers, userID)
-		delete(connectedUsers, user.opponentID)
+	for i := 0; i < times; i++ {
+		user.guessLocations[x][y] = true
+		hitOrMiss := "miss"
+		if user.guessLocations[x][y] && opponent.pieceLocations[x][y] {
+			hitOrMiss = "hit"
+		}
+
+		userMessage := ""
+		opponentMessage := ""
+		if (horiz || vert) && i == 0 {
+			userMessage += "startmulti"
+			opponentMessage += "startmulti"
+		} else if (horiz || vert) && i == times-1 {
+			userMessage += "endmulti"
+			opponentMessage += "endmulti"
+		}
+
+		gameOver := gameOver(user.guessLocations, opponent.pieceLocations)
+		userMessage += strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
+		opponentMessage += strconv.Itoa(x) + "," + strconv.Itoa(y) + ";" + hitOrMiss
+		if gameOver {
+			userMessage += ";win"
+			opponentMessage += ";loss"
+		}
+		if horiz {
+			y++
+		} else if vert {
+			x++
+		}
+
+		user.connection.WriteMessage(1, []byte(userMessage))
+		opponent.connection.WriteMessage(1, []byte(opponentMessage))
+		if gameOver {
+			delete(connectedUsers, userID)
+			delete(connectedUsers, user.opponentID)
+			return
+		}
 	}
 }
 

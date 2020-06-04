@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="index.css"/>
     <script src="chat.js"></script>
-    <script defer src="index.js"></script>
     <script defer src="game.js"></script>
+    <script defer src="index.js"></script>
     <title>Battleships</title>
 </head>
 <body>
@@ -65,6 +65,13 @@
                 <button id="startgame-button" type="button">Start Game</button>
             </div>
 			<div id="stats" class="sidebar">
+                <input id="normalshot" type="checkbox">Normal Shot</button>
+                <br>
+                <input id="verttwoshot" type="checkbox">Vertical Two Shot</button>
+                <br>
+                <input id="horizthreeshot" type="checkbox">Horizontal Three Shot</button>
+                <div id="oppdefeatedships"></div>
+                <div id="mydefeatedships"></div>
                 <div id="whose-turn"></div>
                 <div id="game-over"></div>
                 <button id="return-to-home">Return To Home</button>

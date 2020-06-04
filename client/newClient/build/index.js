@@ -32,8 +32,6 @@
         if (token) {
             toggleLandingPage(["none", "none", "block"])
             getFriends()
-            // used to make game last even if page is refreshed
-            // checkOngoingGame()
         }
     }
 
@@ -45,7 +43,6 @@
         document.getElementById("signin_password").value = ""
 
         var details = {"email":email, "password":password}
-        // POST v1/player
         fetch("https://api.dr4gonhouse.me/v1/sessions", {
             method: "POST",
             headers: {
@@ -78,7 +75,6 @@
     function signOut() {
         infoDivToggle("reset", null, null)
         var token = window.localStorage.getItem("authorization")
-        // DELETE v1/player/id
         fetch("https://api.dr4gonhouse.me/v1/sessions/mine", {
             method: "DELETE",
             headers: {
@@ -102,6 +98,7 @@
                     localStorage.removeItem("authorization")
                     localStorage.removeItem("currUser")
                     infoDivToggle("success", response.status, "Signed Out")
+                    location.reload()
                 }
             })
             .catch((err) => console.log(err))
@@ -132,7 +129,6 @@
             "firstName": first,
             "lastName":last
         }
-        // POST /v1/player
         fetch("https://api.dr4gonhouse.me/v1/users", {
             method: "POST",
             headers: {
