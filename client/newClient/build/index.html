@@ -38,9 +38,9 @@
         <button type="button" id="signinpage">Sign in instead</button>
     </div>
     <div id="loggedindiv">
+        <h1 id="game-title">WELCOME TO BATTLESHIP</h1>
+        <button type="button" id="signout">Sign out</button>
         <div id="game">
-            <button type="button" id="signout">Sign out</button>
-            <h1 id="game-title">WELCOME TO BATTLESHIP</h1>
             <div id="pieces" class="sidebar">
                 <h2 id="pieces-title">Place Your Pieces</h2>
                 <div id="piece-caption">Select Ship Name to Position</div>
@@ -88,25 +88,27 @@
                     </div>
                 </div>
             <div id="lower-chatdiv">
-                <input id="chat-input-text">
+                <input id="chat-input-text" placeholder="Type message here" disabled>
                 <button id="send-chat">Send</button>
             </div>
         </div>
         <div id="friendsdiv">
-            <div>
+            <div id="friend-search">
                 <label id="addFriendLabel" for="addfriendinput"><strong>Search for Friend</strong></label>
                 <div>
-                    <input type="text" id="addfriendinput", name="addfriendinput"/>
+                    <input type="text" id="addfriendinput", name="addfriendinput" placeholder="Type username here"/>
                 </div>
                 <button type="button" id="addfriendbutton">Add Friend</button>
             </div>
-            <h4>Friends List</h4>
-            <div id="friendslist">
-
-            </div>
-            <h4>Friend Requests</h4>
-            <div id="friendrequestlist">
-
+            <div id="friend-list-divs">
+                <h4>Friends List</h4>
+                <div id="friendslist">
+    
+                </div>
+                <h4>Friend Requests</h4>
+                <div id="friendrequestlist">
+    
+                </div>
             </div>
             <button type="button" id="updateFriendsList">Update Friends List</button>
         </div>

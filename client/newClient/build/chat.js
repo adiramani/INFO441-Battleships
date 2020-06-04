@@ -19,6 +19,11 @@ function infoDivToggle(func, status, text) {
         infoDiv.innerHTML = "Success: " + text
         infoDiv.style.backgroundColor = "green"
     }
+    if (func !== "reset") {
+        setTimeout(function(){
+            infoDivToggle("reset", null, null)
+        }, 5000)
+    }
 }
 
 function addFriend() {
@@ -222,12 +227,14 @@ function openFriendChat() {
     }
     conn.onopen = function() {
         document.getElementById("send-chat").addEventListener("click", messageHandler)
+        document.getElementById("chat-input-text").disabled = false;
     }
     conn.onerror = function(error) {
         console.error('WebSocket Error ' + error);
     }
     conn.onclose = function() {
         document.getElementById("send-chat").removeEventListener("click", messageHandler)
+        document.getElementById("chat-input-text").disabled = true;
     }
     conn.onmessage = function(e) {
         if(e.data.startsWith("Error")) {

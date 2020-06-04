@@ -24,7 +24,7 @@ body {
 }
 
 #signout{
-    position: absolute;
+    position: fixed;
     float: right;
     right: 8vh;
     top: 2vh;
@@ -46,20 +46,22 @@ body {
 }
 
 #friendsdiv {
-    position: absolute;
+    background-color: rgb(146, 212, 235);
+    position: fixed;
     width: 18vw;
     height: 37vh;
     bottom:0;
     left: 80%;
-    top: 23%;
+    top: 17%;
     border: thick solid black;
     /* border: thick solid #0077be;  */
 }
 
 input {
     border: 1px solid transparent;
+    border-radius: 10%;
     padding: 5px;
-    background-color: #f1f1f1;
+    background-color: rgb(141, 198, 219);
 }
 
 .autocomplete-list-items {
@@ -77,7 +79,7 @@ input {
 }
 
 #friendsdiv h4 {
-    margin: 2%;
+    margin: 1%;
 }
 
 #friendsdiv li {
@@ -97,17 +99,30 @@ input {
 }
 
 #friendslist {
+    border: thin solid black;
     overflow-y: scroll;
-    height: 20%;
+    overflow-x: hidden;
+    height: 35%;
 }
 
 #friendrequestlist {
+    border: thin solid black;
     overflow-y: scroll;
-    height: 20%;
+    height: 35%;
+}
+
+#friend-search {
+    border: thin solid black;
+    height: 30%;
+}
+
+#friend-list-divs {
+    height: 60%;
 }
 
 #chatdiv {
-    position: absolute;
+    background-color: rgb(146, 212, 235);
+    position: fixed;
     width: 18vw;
     height: 33vh;
     bottom: 0;
@@ -121,29 +136,28 @@ input {
 #upper-chatdiv {
     height: 80%;
     position: relative;
+    border: medium solid black
 }
 
-/*#chat-close {
-    position: absolute;
-    border: thin solid black;
-    background-color: rgba(97, 97, 97, 0.5);
-    padding: 1%;
+#infodiv {
+    position: fixed;
     top: 0;
-    right: 0;
-}*/
+    left: 0;
+}
 
 #chat-header {
     overflow-x: scroll;
     overflow-y: hidden;
     white-space: nowrap;
-    /*height: 30%;*/
+    height: 30%;
     width: 100%;
+    border: thin solid black
 }
 
 #chat-header div {
     display: inline-block;
     border: thin solid black;
-    padding: 5%;
+    padding: 2vh;
     width: auto;
 }
 
@@ -158,7 +172,6 @@ input {
 }
 
 #lower-chatdiv {
-    padding-top: 5%;
     height: 15%;
     margin: none;
 }
@@ -166,6 +179,7 @@ input {
 #chat-input-text {
     margin-left: 5px;
     width: 70%;
+    height: 85%;
 }
 
 #send-chat {
@@ -204,7 +218,6 @@ input {
 
 .grid-title {
     text-align: center;
-    padding: 10px;
     font-family: 'Orbitron', sans-serif;
 }
 
@@ -215,23 +228,24 @@ input {
 }
 
 #game {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    align-items: center;
+    position: relative;
+    width: 100vw;
+    height: 80vh;
 }
 
 #gameboard {
-    position: absolute; 
-    width: 50%;
-    right: 15%;
+    float: right;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .grid {
     width:340px;
     height:340px;
-    display: inline-block;
-    padding-right: 30px
+    padding-bottom: 5vh;
+    margin-left: 29%;
+    transform: translateX(-170px);
 }
 
 .grid div {
@@ -283,15 +297,11 @@ input {
 }
 
 .sidebar {
-    position: absolute;
-    vertical-align: middle;
-    /* border: thick solid #0077be;  */
+    background-color: rgb(146, 212, 235);
     border: thick solid black;
-    width: 15%;
-    /* height: a; */
-    vertical-align: middle;
-    margin-top: 50px;
-    left: 15%;
+    display: inline-block;
+    margin-top: 10%;
+    width: 20%;
 }
 
 .sidebar h2 {
@@ -332,13 +342,11 @@ input {
 
 #addfriendinput {
     margin-top: 2px;
-    margin-bottom: 8px;
     margin-left: 5px;
 }
 
 #addfriendbutton {
     margin-left: 5px;
-    margin-top: 7px;
     padding-left: 4px;
 }
 

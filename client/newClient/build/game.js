@@ -44,7 +44,7 @@
         grid = new Grid();
 		initial_ship_pos = [];
         let newGame = new Game()
-        $("pieces").style.display = "block";
+        $("pieces").style.display = "inline-block";
         $("settings").style.display = "none";
         $("stats").style.display = "none";
     }
@@ -190,7 +190,7 @@
             playerCells[i].classList.add("setup-done");
         }
         $("pieces").style.display = "none";
-        $("settings").style.display = "block";
+        $("settings").style.display = "inline-block";
         addSettingsListeners(initial_ship_pos);
     }
     
@@ -270,7 +270,7 @@
         playWebSocket.onmessage = function(event) {
             if (event.data.startsWith("your turn|") || event.data.startsWith("opponent's turn|")) {
                 $("settings").style.display = "none";
-                $("stats").style.display = "block";
+                $("stats").style.display = "inline-block";
                 let cells = $("player2GB").childNodes;
                 for (let i = 0; i < cells.length; i++) {
                     let cell = cells[i];
