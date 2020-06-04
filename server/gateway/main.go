@@ -88,7 +88,6 @@ func main() {
 		auth := r.Header.Get("Authorization")
 		if len(auth) == 0 {
 			auth = r.URL.Query().Get("auth")
-			log.Printf("Auth: %s" + auth)
 		}
 		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
 		sessState := &handlers.SessionState{}
@@ -129,7 +128,6 @@ func main() {
 		auth := r.Header.Get("Authorization")
 		if len(auth) == 0 {
 			auth = r.URL.Query().Get("auth")
-			log.Printf("Auth: %s" + auth)
 		}
 		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
 		sessState := &handlers.SessionState{}

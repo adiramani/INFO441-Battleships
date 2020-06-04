@@ -12,22 +12,12 @@ app.use(express.json());
 app.use(morgan("dev"));
 
 const mysqlPool = mysql.createPool({
-    /*host: "localhost",
-    user: "root",
-    password: "password",
-    database: "userDB",*/
     host: mysqlEndPoint[0],
     user: mysqlEndPoint[1],
     password: mysqlEndPoint[2],
     database: mysqlEndPoint[3],
     insecureAuth: true
 });
-
-/*const connect = () => {
-    mongoose.connect(mongoEndPoint, {useNewUrlParser:true});
-}
-connect()
-mongoose.connection.on('error', () => console.log("error connecting"))*/
 
 app.listen(port, host, () => {
     console.log(`listening on ${port}`);
@@ -106,8 +96,6 @@ app.post("/v1/friends/:friendUserName", async (req, res) => {
     if (accepted == null) {
         res.status(500).send("No accepted passed in - internal error")
         return
-    } else {
-        console.log(accepted)
     }
 
     try {

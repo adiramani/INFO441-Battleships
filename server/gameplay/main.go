@@ -63,11 +63,31 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			// this deletes the connection for you and your opponent if
 			// one of the connections close
+			log.Printf("Error: %s", err)
 			if connectedUsers[userID] != nil {
 				if connectedUsers[userID].opponentID != -1 {
 					if connectedUsers[connectedUsers[userID].opponentID] != nil {
-						connectedUsers[connectedUsers[userID].opponentID].connection.Close()
+						err2 := connectedUsers[connectedUsers[userID].opponentID].connection.Close()
+						if err2 != nil {
+							log.Printf("Error: %s", err)
+						}
 					}
+				}
+				if connectedUsers[userID].gameID != "" {
+					newURL := fmt.Sprintf("https://api.dr4gonhouse.me/v1/game/%s", connectedUsers[userID].gameID)
+					newReq, err3 := http.NewRequest("DELETE", newURL, nil)
+					if err3 != nil {
+						delete(connectedUsers, userID)
+						log.Fatal(err)
+					}
+					newReq.Header.Set("Authorization", r.URL.Query().Get("auth"))
+					client := http.Client{}
+					resp, err4 := client.Do(newReq)
+					if err4 != nil {
+						delete(connectedUsers, userID)
+						log.Fatal(err)
+					}
+					defer resp.Body.Close()
 				}
 				delete(connectedUsers, userID)
 			}
@@ -133,12 +153,15 @@ func setUpGame(message string, userID int, conn *websocket.Conn) {
 }
 
 func handleMove(message string, userID int) {
-	log.Printf("message: " + message)
 	x, _ := strconv.Atoi(strings.Split(string(message), (","))[0])
 	y, _ := strconv.Atoi(strings.Split(string(message), (","))[1])
 
 	user := connectedUsers[userID]
 	opponent := connectedUsers[user.opponentID]
+	if opponent == nil {
+		log.Printf("unable to find opponent")
+		return
+	}
 
 	user.guessLocations[x][y] = true
 	user.turn = false
