@@ -1,9 +1,4 @@
-
 (function() {
-
-    var openConn = null;
-
-
     window.onload = function() {
         document.getElementById("signuppage").onclick = function() {
             document.getElementById("signindiv").style.display = "none"
@@ -25,7 +20,6 @@
         document.getElementById("addfriendinput").addEventListener("input", autocompleteFriends)
         document.getElementById("addfriendinput").addEventListener("focusout", function(e) {
             if (document.activeElement.className != "autocomplete-list-items") {
-                console.log(document.activeElement)
                 removeAutocomplete()
             }
         })
@@ -45,7 +39,6 @@
 
     function signIn() {
         infoDivToggle("reset", null, null)
-        console.log("in signin func")
         var email = document.getElementById("signin_email").value
         var password = document.getElementById("signin_password").value
         document.getElementById("signin_email").value = ""
@@ -61,24 +54,19 @@
             body: JSON.stringify(details)
         })
             .then(async (response) => {
-                console.log(response)
                 if(response.status > 300) {
                     var text = await response.text()
                     infoDivToggle("error", response.status, text)
-                    console.log(text)
                 } else {
                     response.headers.forEach((value, key) => {
                         if (key == "content-type") {
                             if (value != "application/json") {
-                                console.log("Error in response")
                             }
                         } else if (key == "authorization") {
                             window.localStorage.setItem(key, value)
                         }
-                        console.log(key + " " + value)
                     });
                     var newResponse = await response.json()
-                    console.log(newResponse)
                     localStorage.setItem("currUser", newResponse.userName)
                     toggleLandingPage(["none", "none", "block"])
                     getFriends()
@@ -88,7 +76,6 @@
     }
 
     function signOut() {
-        console.log("in signout func")
         infoDivToggle("reset", null, null)
         var token = window.localStorage.getItem("authorization")
         // DELETE v1/player/id
@@ -103,7 +90,6 @@
                     var text = await response.text()
                     infoDivToggle("error", response.status, text)
                 } else {
-                    console.log(response)
                     document.getElementById("friendslist").innerHTML = ""
                     document.getElementById("friendrequestlist").innerHTML = ""
                     document.getElementById("chat-text").innerHTML = ""
@@ -163,15 +149,13 @@
                     response.headers.forEach((value, key) => {
                         if (key == "content-type") {
                             if (value != "application/json") {
-                                console.log("Error in response")
+                                infoDivToggle("error", 500, "Error in response")
                             }
                         } else if (key == "authorization") {
                             window.localStorage.setItem(key, value)
                         }
-                        console.log(key + " " + value)
                     });
                     var newResponse = await response.json()
-                    console.log(newResponse)
                     localStorage.setItem("currUser", newResponse.userName)
                     toggleLandingPage(["none", "none", "block"])
                 }

@@ -2,6 +2,13 @@
     window.addEventListener("load", function() {
         newGame();
         addSetupListeners();
+        document.getElementById('create-game-input').addEventListener("click", function() {
+            if (this.checked) {
+                $("id-input").disabled = true;
+            } else {
+                $("id-input").disabled = false;
+            }
+        })
     })
 
     var grid;
@@ -178,7 +185,6 @@
     function allPiecesPlaced() {
         $("pieces").removeChild($("pieces-title"));
         $("pieces").removeChild($("orientation-button"));
-        console.log(initial_ship_pos);
         let playerCells = $("player1GB").getElementsByClassName("cell")
         for (let i = 0; i < playerCells.length; i++) {
             playerCells[i].classList.add("setup-done");
@@ -196,12 +202,12 @@
             $("settings").appendChild(p)
             $("id-input").disabled = true;
             $("friend-input").disabled = true;
+            $('create-game-input').disabled = true;
             initializeWebSockets(gameID, $("friend-input").checked);
         });
     }
 
 	function isValidLocation(row, col, shipSize) {
-        console.log(grid);
 		if (isHorizontal) {
 			if (col + shipSize < 11) {
 				for (let i = 0; i < shipSize; i++) {
@@ -239,7 +245,6 @@
     function addSetupListeners() {
         let button = $("orientation-button");
         button.addEventListener('click', function() {
-            console.log("clicked");
             isHorizontal = !isHorizontal;
         });
 
@@ -257,6 +262,9 @@
 
     function initializeWebSockets(inputGameID, friendGame) {
         //let playWebSocket = new WebSocket("ws://localhost:4000/game/play"); 
+        if(playWebSocket) {
+            playWebSocket.close()
+        }
         playWebSocket = new WebSocket("wss://api.dr4gonhouse.me/v1/game/play/?auth=" + localStorage.getItem("authorization")); 
         
         playWebSocket.onmessage = function(event) {
@@ -269,8 +277,6 @@
                     cell.onclick = function () {
                         let row = cell.getAttribute("row");
                         let col = cell.getAttribute("col");
-                        console.log(row);
-                        console.log(col);
                         sendMoveMessage(row, col);
                     }
                     cell.onmouseenter = function() {
@@ -382,7 +388,9 @@
         }
 
         playWebSocket.onerror = (err) => {
+            alert(err.toString() + " Proceeding to reload page")
             console.log(err.toString())
+            window.reload()
         }
         
         playWebSocket.onclose = () => {
@@ -423,12 +431,13 @@
         }
 
         function checkForGames(gameID, friendGame, shipLocations) {
-            console.log(friendGame)
             var token = localStorage.getItem("authorization")
             url = "https://api.dr4gonhouse.me/v1/game"
-            console.log(gameID)
             if (gameID) {
                 url += "/" + gameID
+            } else if(friendGame) {
+                createNewGame(friendGame, shipLocations)
+                return;
             }
             fetch(url, {
                 method: "GET",

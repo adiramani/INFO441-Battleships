@@ -1,10 +1,7 @@
 function toggleLandingPage(displays) {
     document.getElementById("signindiv").style.display = displays[0]
     document.getElementById("signupdiv").style.display = displays[1]
-    document.getElementById("loggedindiv").style.display = displays[2];
-    if (displays[2] == "block") {
-        document.getElementById("welcome-header").innerHTML = "Welcome " + localStorage.getItem("currUser")
-    }
+    document.getElementById("loggedindiv").style.display = displays[2]
 }
 
 function infoDivToggle(func, status, text) {
@@ -47,7 +44,6 @@ function addFriend() {
                 infoDivToggle("success", response.status, text)
                 getFriends()
             }
-            console.log(response)
         })
         .catch((err) => console.log(err))
 }
@@ -107,7 +103,6 @@ function getFriends() {
                 })
                 
                 await fillChatHeader(friends)
-                console.log(friends)
             }
         }) 
         .catch((err) => console.log(err))
@@ -240,7 +235,6 @@ function openFriendChat() {
             return;
         }
         var messages = JSON.parse(e.data)
-        console.log(messages)
         if(messages["type"] && messages["type"] == "old") {
             var sortedMsgs = messages['messages'].sort((a, b) =>  Date.parse(a.createdAt) - Date.parse(b.createdAt))
             for (var i = 0; i < sortedMsgs.length; i++) {
@@ -284,7 +278,6 @@ function declineFriend() {
 }
 
 function acceptFriend() {
-    console.log("in accept friend")
     infoDivToggle("reset", null, null)
     var token = localStorage.getItem("authorization")
     var details = {"accepted":true}
@@ -326,7 +319,6 @@ function autocompleteFriends() {
     infoDivToggle("reset", null, null)
     var value = this.value 
     var token = localStorage.getItem("authorization")
-    console.log(value)
     var url = "https://api.dr4gonhouse.me/v1/friends/" + value
 
     div = document.createElement("DIV")
@@ -348,7 +340,6 @@ function autocompleteFriends() {
                 if (value != document.getElementById("addfriendinput").value) {
                     return;
                 }
-                console.log(autofillList)
                 parentNode.appendChild(div)
                 autofillList.forEach(user => {
                     itemDiv = document.createElement("DIV")

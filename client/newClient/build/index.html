@@ -38,10 +38,6 @@
         <button type="button" id="signinpage">Sign in instead</button>
     </div>
     <div id="loggedindiv">
-        <!-- <div id="loggedin-title">
-             <h2 id="welcome-header"></h2>
-            <button type="button" id="signout">Sign out</button>
-        </div> -->
         <div id="game">
             <button type="button" id="signout">Sign out</button>
             <h1 id="game-title">WELCOME TO BATTLESHIP</h1>
@@ -58,10 +54,13 @@
 			<div id="settings" class="sidebar">
                 <h2 id="settings-title">Game Settings</h2>
                 <div>
+                    <input id="create-game-input" type="checkbox" name="createType" value="created">
+                    <span>Create a game</span>
+                    <br>
                     <input id="friend-input" type="checkbox" name="gameType" value="friend">
                     <span>Play a Friend</span>
                 </div>
-                <label for="id-input">Input A Code (Leave blank to find/create a random game)</label>
+                <label for="id-input">Input a Code if you're joining a friends game.</label>
                 <input id="id-input" type="text" name="id-input" placeholder="Enter or generate a uniqueID" size=25>
                 <button id="startgame-button" type="button">Start Game</button>
             </div>

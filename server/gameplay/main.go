@@ -57,37 +57,41 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Connection error", 500)
 		return
 	}
-
+	log.Printf("Starting websocket for %d", userID)
 	for {
 		_, message, err := conn.ReadMessage()
+		log.Printf(string(message))
 		if err != nil {
 			// this deletes the connection for you and your opponent if
 			// one of the connections close
-			log.Printf("Error: %s", err)
+			log.Printf("Error: %s for %d", err, userID)
 			if connectedUsers[userID] != nil {
 				if connectedUsers[userID].opponentID != -1 {
 					if connectedUsers[connectedUsers[userID].opponentID] != nil {
-						err2 := connectedUsers[connectedUsers[userID].opponentID].connection.Close()
-						if err2 != nil {
-							log.Printf("Error: %s", err)
+						if connectedUsers[connectedUsers[userID].opponentID].connection != nil {
+							err2 := connectedUsers[connectedUsers[userID].opponentID].connection.Close()
+							if err2 != nil {
+								log.Printf("Error: %s", err)
+							}
 						}
 					}
-				}
-				if connectedUsers[userID].gameID != "" {
-					newURL := fmt.Sprintf("https://api.dr4gonhouse.me/v1/game/%s", connectedUsers[userID].gameID)
-					newReq, err3 := http.NewRequest("DELETE", newURL, nil)
-					if err3 != nil {
-						delete(connectedUsers, userID)
-						log.Fatal(err)
+				} else {
+					if connectedUsers[userID].gameID != "" {
+						newURL := fmt.Sprintf("https://api.dr4gonhouse.me/v1/game/%s", connectedUsers[userID].gameID)
+						newReq, err3 := http.NewRequest("DELETE", newURL, nil)
+						if err3 != nil {
+							log.Printf("Error: %s for %d", err, userID)
+						} else {
+							newReq.Header.Set("Authorization", r.URL.Query().Get("auth"))
+							client := http.Client{}
+							resp, err4 := client.Do(newReq)
+							if err4 != nil {
+								log.Printf("Error: %s for %d", err, userID)
+							} else {
+								defer resp.Body.Close()
+							}
+						}
 					}
-					newReq.Header.Set("Authorization", r.URL.Query().Get("auth"))
-					client := http.Client{}
-					resp, err4 := client.Do(newReq)
-					if err4 != nil {
-						delete(connectedUsers, userID)
-						log.Fatal(err)
-					}
-					defer resp.Body.Close()
 				}
 				delete(connectedUsers, userID)
 			}

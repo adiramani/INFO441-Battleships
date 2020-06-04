@@ -29,7 +29,6 @@ func main() {
 	SESSIONKEY := os.Getenv("SESSIONKEY")
 	REDISADDR := os.Getenv("REDISADDR")
 	DSN := os.Getenv("DSN")
-	SUMMARYADDR := strings.Split(os.Getenv("SUMMARYADDR"), ",")
 	MESSAGESADDR := strings.Split(os.Getenv("MESSAGESADDR"), ",")
 	SOCIALADDR := os.Getenv("SOCIALADDR")
 	GAMEADDR1 := os.Getenv("GAMEADDR1")
@@ -61,27 +60,6 @@ func main() {
 		SessStore: redisStore,
 		UserStore: mySQLStore,
 	}
-
-	summaryCount := 0
-	summaryDirector := func(r *http.Request) {
-		auth := r.Header.Get("Authorization")
-		authUserSessID := sessions.SessionID(strings.TrimPrefix(auth, "Bearer "))
-		sessState := &handlers.SessionState{}
-		err := handlerContext.SessStore.Get(authUserSessID, sessState)
-		if err == nil {
-			r.Header.Set("X-User", fmt.Sprintf("{\"userID\":%d}", sessState.User.ID))
-		} else {
-			r.Header.Del("X-User")
-		}
-
-		r.Host = SUMMARYADDR[summaryCount]
-		r.URL.Host = SUMMARYADDR[summaryCount]
-		r.URL.Scheme = "http"
-		if len(SUMMARYADDR) > summaryCount+1 {
-			summaryCount++
-		}
-	}
-	summaryProxy := &httputil.ReverseProxy{Director: summaryDirector}
 
 	messageCount := 0
 	messageDirector := func(r *http.Request) {
@@ -163,7 +141,6 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("/v1/summary", summaryProxy)
 	mux.Handle("/v1/channels", messageProxy)
 	mux.Handle("/v1/channels/", messageProxy)
 	mux.Handle("/v1/messages/", messageProxy)
